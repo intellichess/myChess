@@ -23,12 +23,12 @@ def isTileOccupied(self):
         return False
 
 class PieceType(Enum):
-    knight = "k"
+    knight = "N"
     pawn = "p"
     king = "K"
-    queen = "q"
-    rook = "r"
-    bishop = "b"
+    queen = "Q"
+    rook = "R"
+    bishop = "B"
 
 class Piece:
 
@@ -41,6 +41,15 @@ class Piece:
         self.possibleMoves = []
         self.pieceValue = 0
         #more stuff here
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def locationBonus(self):
+        return None
 
     def getPieceValue(self):
         return self.pieceValue
@@ -85,7 +94,7 @@ class bishop(Piece):
         self.pieceType = PieceType.bishop.value
         self.possibleMoves = [-9,-7,7,9]
         self.firstMove = True
-        self.pieceValue = 3
+        self.pieceValue = 300
 
     def __str__(self):
         return str(self.__dict__)
@@ -131,8 +140,13 @@ class bishop(Piece):
         return legalMoves.copy()
 
     def movePiece(self, move):
-        return bishop(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece = bishop(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
 
+    def locationBonus(self):
+        from boardutils import bishopBonus
+        return bishopBonus(self.piecePosition, self.Alliance.value)
 ##########################################
 
 class knight(Piece):
@@ -142,7 +156,7 @@ class knight(Piece):
         self.pieceType = PieceType.knight.value
         self.possibleMoves = [-17,-15,-10,-6,6,10,15,17]
         self.firstMove =True
-        self.pieceValue=3
+        self.pieceValue=300
 
     def __str__(self):
         return str(self.__dict__)
@@ -195,7 +209,13 @@ class knight(Piece):
         return legalMoves.copy()
 
     def movePiece(self, move):
-        return knight(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece = knight(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
+
+    def locationBonus(self):
+        from boardutils import knightBonus
+        return knightBonus(self.piecePosition, self.Alliance.value)
 ##################################################
 
 class rook(Piece):
@@ -205,7 +225,7 @@ class rook(Piece):
         self.pieceType = PieceType.rook.value
         self.possibleMoves = possibleMoves = [-8,-1,1,8]
         self.firstMove = True
-        self.pieceValue=5
+        self.pieceValue=500
 
     def __str__(self):
         return str(self.__dict__)
@@ -251,8 +271,13 @@ class rook(Piece):
         return legalMoves.copy()
 
     def movePiece(self, move):
-        return rook(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece = rook(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
 
+    def locationBonus(self):
+        from boardutils import rookBonus
+        return rookBonus(self.piecePosition, self.Alliance.value)
 #############################################
 
 class queen(Piece):
@@ -262,7 +287,7 @@ class queen(Piece):
         self.pieceType = PieceType.queen.value
         self.possibleMoves = [-9,-8,-7,-1,1,7,8,9]
         self.firstMove = True
-        self.pieceValue=9
+        self.pieceValue=900
 
     def __str__(self):
         return str(self.__dict__)
@@ -281,7 +306,7 @@ class queen(Piece):
 
     def findLegalMoves(self, board):
         legalMoves = []
-        for i in range(4):
+        for i in range(8):
             canidateDestinationCoordinate = self.piecePosition
             while (0<=canidateDestinationCoordinate<64):
 
@@ -305,12 +330,16 @@ class queen(Piece):
                             # capture
                             legalMoves.append(attackMove(self, board, canidateDestinationCoordinate, pieceOnTile))
                         break
-
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
-        return queen(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece = queen(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
 
+    def locationBonus(self):
+        from boardutils import queenBonus
+        return queenBonus(self.piecePosition, self.Alliance.value)
 ###################################################
 
 class pawn(Piece):
@@ -321,7 +350,7 @@ class pawn(Piece):
         self.pieceType = PieceType.pawn.value
         self.possibleMoves = [8,16,7,9]
         self.firstMove =True
-        self.pieceValue=1
+        self.pieceValue=100
 
     def __str__(self):
         return str(self.__dict__)
@@ -329,38 +358,41 @@ class pawn(Piece):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+    def isFirstColumnExclusion(self, currentPosition, canidateOffset, alliance):
+        if (alliance==1):
+            return col1[currentPosition] and ((canidateOffset == 9))
+        else:
+            return col1[currentPosition] and ((canidateOffset == 7))
+
+    def isEighthColumnExclusion(self, currentPosition, canidateOffset, alliance):
+        if (alliance==1):
+            return col8[currentPosition] and ((canidateOffset == 7))
+        else:
+            return col8[currentPosition] and ((canidateOffset == 9))
+
     def findLegalMoves(self, board):
         from boardutils import col1, col2, col7, col8, row2, row7
         legalMoves = []
         for i in range(4):
+
             canidateDestinationCoordinate = self.piecePosition + (self.Alliance.value*self.possibleMoves[i])
 
+            #print(i, canidateDestinationCoordinate, self.piecePosition)
             #if piece moves off board skip i and move to next i
-            if(not (0<=board.board[canidateDestinationCoordinate].getTileCoordinate()<64)):
+
+            if(not (0<=canidateDestinationCoordinate<64)):
                 continue
-
-            #pawn specific moves/promotions
-            #first move, Forward jump
-            #row matrix needs to be initialized
-
-            #print(self.Alliance.value,self.possibleMoves[i]==16 and self.isFirstMove(), \
-            #      ((row2[self.piecePosition] and self.Alliance.value==1) or\
-            #       (row7[self.piecePosition] and self.Alliance.value==-1)), \
-            #      self.piecePosition)
-            #behindCanidateDestination = self.piecePosition + (self.Alliance.value * 8)
-            #print(not board.board[behindCanidateDestination].occupied() and \
-            #      not board.board[canidateDestinationCoordinate].occupied())
 
             if(self.possibleMoves[i]==8 and (not board.board[canidateDestinationCoordinate].occupied())):
                 #promotion code here
                 if ((self.Alliance.value==1 and row8[canidateDestinationCoordinate]) or\
                         (self.Alliance.value==-1 and row1[canidateDestinationCoordinate])):
                     from move import pawnMove, pawnPromotion
-                    legalMoves.append(pawnPromotion(pawnMove(self,board.board,canidateDestinationCoordinate)))
+                    legalMoves.append(pawnPromotion(pawnMove(self,board,canidateDestinationCoordinate), self, board, canidateDestinationCoordinate))
 
                 else:
                     from move import pawnMove
-                    legalMoves.append(pawnMove(self, board.board, canidateDestinationCoordinate))
+                    legalMoves.append(pawnMove(self, board, canidateDestinationCoordinate))
 
             elif(self.possibleMoves[i]==16 and self.isFirstMove() and \
                  ((row2[self.piecePosition] and self.Alliance.value==1) \
@@ -369,63 +401,73 @@ class pawn(Piece):
                 if((not board.board[behindCanidateDestination].occupied()) and \
                     (not board.board[canidateDestinationCoordinate].occupied())):
                     from move import pawnJump
-                    legalMoves.append(pawnJump(self, board.board, canidateDestinationCoordinate))
+                    legalMoves.append(pawnJump(self, board, canidateDestinationCoordinate))
+
 
             elif(self.possibleMoves[i]==7 and \
-                 (not (col8[self.piecePosition] and self.Alliance.value!=-1)) or \
-                (col1[self.piecePosition] and self.Alliance.value!=1)):
+                (not (col8[self.piecePosition] and self.Alliance.value==-1)) or \
+                (col1[self.piecePosition] and self.Alliance.value==1)):
+            #elif(self.isFirstColumnExclusion(self.piecePosition,self.possibleMoves[i],self.Alliance.value)):
+
                 if(board.board[canidateDestinationCoordinate].occupied()):
                     pieceOnCanidate = board.board[canidateDestinationCoordinate].getPiece()
                     if(self.Alliance!=pieceOnCanidate.Alliance):
                         if ((self.Alliance.value == 1 and row8[canidateDestinationCoordinate]) or \
                                 (self.Alliance.value == -1 and row1[canidateDestinationCoordinate])):
                             from move import pawnPromotion, pawnAttackMove
-                            legalMoves.append(pawnPromotion(pawnAttackMove(self, board.board, canidateDestinationCoordinate, pieceOnCanidate)))
+                            legalMoves.append(pawnPromotion(pawnAttackMove(self, board, canidateDestinationCoordinate, pieceOnCanidate), self, board, canidateDestinationCoordinate))
                         else:
                         #pass
                         #take piece
                             from move import pawnAttackMove
-                            legalMoves.append(pawnAttackMove(self, board.board, canidateDestinationCoordinate,pieceOnCanidate))
-                elif(board.getEnPassantPawn()!=None):
+                            legalMoves.append(pawnAttackMove(self, board, canidateDestinationCoordinate,pieceOnCanidate))
+                elif(board.getEnPassantPawn() is not None):
                     if(board.getEnPassantPawn().getPiecePosition() == (self.piecePosition+(self.Alliance.value*-1))):
                         pieceOnCanidate = board.getEnPassantPawn()
                         if (self.Alliance!=pieceOnCanidate.Alliance):
 
                             from move import pawnEnPassantAttackMove
-                            legalMoves.append(pawnEnPassantAttackMove(self, board.board, canidateDestinationCoordinate, pieceOnCanidate))
+                            legalMoves.append(pawnEnPassantAttackMove(self, board, canidateDestinationCoordinate, pieceOnCanidate))
 
 
             elif(self.possibleMoves[i]==9 and \
-                 (not(col1[self.piecePosition] and self.Alliance.value!=1)) or \
-                (col8[self.piecePosition] and self.Alliance.value!=-1)):
+                (not(col1[self.piecePosition] and self.Alliance.value==-1)) or \
+                (col8[self.piecePosition] and self.Alliance.value==1)):
+            #elif(self.isEighthColumnExclusion(self.piecePosition,self.possibleMoves[i],self.Alliance.value)):
+
                 if (board.board[canidateDestinationCoordinate].isTileOccupied()):
                     pieceOnCanidate = board.board[canidateDestinationCoordinate].getPiece()
                     if (self.Alliance != pieceOnCanidate.Alliance):
                         if ((self.Alliance.value == 1 and row8[canidateDestinationCoordinate]) or \
                                 (self.Alliance.value == -1 and row1[canidateDestinationCoordinate])):
                             from move import pawnAttackMove, pawnPromotion
-                            legalMoves.append(pawnPromotion(pawnAttackMove(self, board.board, canidateDestinationCoordinate,pieceOnCanidate)))
+                            legalMoves.append(pawnPromotion(pawnAttackMove(self, board, canidateDestinationCoordinate,pieceOnCanidate), self, board, canidateDestinationCoordinate))
                         else:
                             #pass
                             # take piece
                             from move import pawnAttackMove
-                            legalMoves.append(pawnAttackMove(self, board.board, canidateDestinationCoordinate,pieceOnCanidate))
-                elif (board.getEnPassantPawn() != None):
+                            legalMoves.append(pawnAttackMove(self, board, canidateDestinationCoordinate,pieceOnCanidate))
+                elif (board.getEnPassantPawn() is not None):
                     if (board.getEnPassantPawn().getPiecePosition() == (self.piecePosition - (self.Alliance.value * -1))):
                         pieceOnCanidate = board.getEnPassantPawn()
                         if (self.Alliance != pieceOnCanidate.Alliance):
                             from move import pawnEnPassantAttackMove
-                            legalMoves.append(pawnEnPassantAttackMove(self, board.board, canidateDestinationCoordinate, pieceOnCanidate))
+                            legalMoves.append(pawnEnPassantAttackMove(self, board, canidateDestinationCoordinate, pieceOnCanidate))
 
         return legalMoves.copy()
 
     def movePiece(self, move):
-        return pawn(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece = pawn(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
 
     def getPromotionPiece(self):
         #check if ai or person, if person, input pieceType if ai, keep queen
         return queen(self.piecePosition, self.Alliance)
 
+    def locationBonus(self):
+        from boardutils import pawnBonus
+        return pawnBonus(self.piecePosition, self.Alliance.value)
 ##################################################
 
 class king(Piece):
@@ -435,15 +477,14 @@ class king(Piece):
         self.pieceType = PieceType.king.value
         self.possibleMoves = [-9,-8,-7,-1,1,7,8,9]
         self.firstMove = True
-        self.pieceValue = 1000
+        self.isCastled = False
+        self.pieceValue = 10000
 
     def __str__(self):
         return str(self.__dict__)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
-
-
 
 
     def isFirstColumnExclusion(self, currentPosition, canidateOffset):
@@ -456,6 +497,7 @@ class king(Piece):
 
     def findLegalMoves(self, board):
         legalMoves = []
+
         for i in range(8):
             canidateDestinatonCoordinate = self.piecePosition + self.possibleMoves[i]
 
@@ -474,27 +516,24 @@ class king(Piece):
 
                     if (self.Alliance != pieceAlliance):
                         #capture
-                        legalMoves.append(attackMove(self,board,canidateDestinatonTile,pieceOnTile))
+                        legalMoves.append(attackMove(self,board,canidateDestinatonCoordinate,pieceOnTile))
 
 
         return legalMoves.copy()
 
     def movePiece(self, move):
-        return king(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        #print("inside set piece", self)
+        #tile with correct destination coordinate created and is taking place of int value
+        #index = 0
+        #if not(isinstance(move.getDestinationCoordinate(), int)):
+        #    index = move.getDestinationCoordinate().tileCoordinate
+        #else:
+        #    index = move.getDestinationCoordinate()
+        piece = king(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
+        piece.firstMove = False
+        return piece
 
+    def locationBonus(self):
+        from boardutils import kingBonus
+        return kingBonus(self.piecePosition, self.Alliance.value)
 ########################################################
-
-#p0 = rook(5, Alliance.black)
-#p1 = rook(5, Alliance.black)
-#p2 = rook(7, Alliance.black)
-
-#print(p0==p1)
-#print(p0==p2)
-#dont need to manipulate shit to test if same object
-
-#print(emptyTile(3).occupied())
-#print(occupiedTile(5,"king").occupied())
-#print(col1)
-#fml=[]
-#print(attackMove("king",fml,1,1))
-#print(Alliance.black.value)

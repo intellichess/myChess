@@ -3,6 +3,33 @@ from piece import Piece, pawn, bishop, rook, knight, queen, king
 from color import Alliance
 
 #board stuff
+def prettyBoard(board):
+    str = ""
+    for i in range(len(board)):
+        if (i%8==0):
+            print("")
+            if (board[i].occupied()==True):
+                if (board[i].pieceOnTile.Alliance.value>0):
+                    str = board[i].pieceOnTile.pieceType + "b"
+                else:
+                    str = board[i].pieceOnTile.pieceType + "w"
+                print(" "+str, end="")
+            else:
+                print(" --",end="")
+        else:
+            if (board[i].occupied()==True):
+                if (board[i].pieceOnTile.Alliance.value>0):
+                    str = board[i].pieceOnTile.pieceType + "b"
+                else:
+                    str = board[i].pieceOnTile.pieceType + "w"
+                print(" "+str, end="")
+            else:
+                print(" --",end="")
+    print("")
+
+def moveToString():
+    pass
+
 def calculateLivePieces(board, color):
     import piece
     livePieces = []
@@ -32,6 +59,7 @@ def createGameBoard(builder):
 
 class Board:
     def __init__(self, builder):
+#        print("in board class",builder.nextMoveMaker)
         self.board = createGameBoard(builder)
         self.whitePieces = calculateLivePieces(self.board, -1)
         self.blackPieces = calculateLivePieces(self.board, 1)
@@ -44,7 +72,8 @@ class Board:
         self.whitePlayer = whitePlayer(self, self.whiteStandardLegalMoves, self.blackStandardLegalMoves)
         self.blackPlayer = blackPlayer(self, self.blackStandardLegalMoves, self.whiteStandardLegalMoves)
         #change to opposite player after each move
-#        self.currentPlayer = self.whitePlayer #Alliance.choosePlayer(builder.nextMoveMaker, whitePlayer, blackPlayer)
+        self.currentPlayer = Alliance.choosePlayer(builder.nextMoveMaker, self.whitePlayer , self.blackPlayer)
+#        print("current player in board class",self.currentPlayer)
 
     def getEnPassantPawn(self):
         return self.enPassantPawn
@@ -85,12 +114,13 @@ class Board:
         # for all pieces in the list
         for i in range(len(pieces)):
             from move import majorMove
-            print(pieces[i].findLegalMoves(self))
-            if (pieces[i].findLegalMoves(self)==0):
-                continue
-            else:
-                for j in range(len(pieces[i].findLegalMoves(self))):
-                    print(i,pieces[i].findLegalMoves(self)[j].destinationCoordinate, pieces[i].findLegalMoves(self)[j].movedPiece);
+#            print(pieces[i].findLegalMoves(self))
+#            if (pieces[i].findLegalMoves(self)==0):
+#                continue
+#            else:
+#                for j in range(len(pieces[i].findLegalMoves(self))):
+#                    print(i,pieces[i].findLegalMoves(self)[j].destinationCoordinate, pieces[i].findLegalMoves(self)[j].movedPiece);
+#make legalMoves a single array
 
             legalMoves.append(pieces[i].findLegalMoves(self))
         return legalMoves
@@ -137,7 +167,7 @@ class Board:
         building.setPiece(piece.knight(62, color.Alliance.white))
         building.setPiece(piece.rook(63, color.Alliance.white))
 
-        building.setMoveMaker(color.Alliance.white)
+        building.setMoveMaker(color.Alliance.white.value)
 
         #print(building.boardConfig[0])
         #print(building.boardConfig)
@@ -145,32 +175,68 @@ class Board:
 
         return building.build()
 
-#    def createBoard(self, builder):
-#        import piece
-#        import color
-#        board = {}
-#        colorCode = color.Alliance.black.value
-#        for i in range(64):
-#                #black 0-15          #white 48-63
-#            if (i==30):
-#                colorCode=color.Alliance.white.value
-#            if ((i==0 or i==7) and (colorCode==1)) or ((i==56 or i==63)and(colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.rook(i,colorCode))
-#            elif ((i==1 or i==6) and (colorCode==1)) or ((i==57 or i==62)and(colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.knight(i,colorCode))
-#            elif ((i==2 or i==5)and(colorCode==1)) or ((i==58 or i==61)and(colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.bishop(i,colorCode))
-#            elif ((i==3 and colorCode==1) or (i==59 and colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.queen(i,colorCode))
-#            elif ((i==4 and colorCode==1) or (i==60 and colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.king(i,colorCode))
-#            elif (((8<=i<=15)and colorCode==1) or((48<=i<=55)and colorCode==-1)):
-#                board[i] = occupiedTile(i,piece.pawn(i,colorCode))
-#            else:
-#                board[i] = emptyTile(i)
 
-#        builder = board
-#        return builder
+    def createCheckBoard(self):
+        import piece
+        import color
+        building = Builder()
+        building.setPiece(piece.rook(0, color.Alliance.black))
+        building.setPiece(piece.king(56, color.Alliance.black))
+        building.setPiece(piece.king(4, color.Alliance.white))
+
+        building.setMoveMaker(color.Alliance.white.value)
+
+
+        return building.build()
+
+    def createMateBoard(self):
+        import piece
+        import color
+        building = Builder()
+        building.setPiece(piece.rook(0, color.Alliance.black))
+        building.setPiece(piece.rook(8, color.Alliance.black))
+        building.setPiece(piece.king(56, color.Alliance.black))
+        building.setPiece(piece.king(4, color.Alliance.white))
+
+        building.setMoveMaker(color.Alliance.white.value)
+
+
+        return building.build()
+
+    def createPromoteBoard(self):
+        import piece
+        import color
+        building = Builder()
+        building.setPiece(piece.pawn(8, color.Alliance.white))
+        building.setPiece(piece.pawn(9, color.Alliance.black))
+        building.setPiece(piece.pawn(48, color.Alliance.white))
+        building.setPiece(piece.pawn(49, color.Alliance.black))
+        building.setPiece(piece.king(63, color.Alliance.black))
+        building.setPiece(piece.king(7, color.Alliance.white))
+
+        building.setMoveMaker(color.Alliance.white.value)
+
+
+        return building.build()
+
+    def createMoveBoard(self):
+        import piece
+        import color
+        building = Builder()
+
+#        building.setPiece(piece.pawn(35, color.Alliance.white))
+#        building.setPiece(piece.rook(35, color.Alliance.white))
+#        building.setPiece(piece.knight(35, color.Alliance.white))
+        building.setPiece(piece.bishop(5, color.Alliance.white))
+#        building.setPiece(piece.queen(35, color.Alliance.white))
+
+        building.setPiece(piece.king(63, color.Alliance.white))
+        building.setPiece(piece.king(0, color.Alliance.black))
+
+        building.setMoveMaker(color.Alliance.white.value)
+        #building.setMoveMaker(color.Alliance.black.value)
+
+        return building.build()
 
 ##########################################################
 
@@ -182,17 +248,26 @@ class Builder(Board):
 
     def build(self):
         #print("self", self.boardConfig)
+#        print("in build class",self.nextMoveMaker)
         return Board(self)
 
     def setMoveMaker(self, nextMoveMaker):
         #get alliance
         self.nextMoveMaker = nextMoveMaker
-        return self
+
+    def setTiles(self, board):
+        for i in range(64):
+            if(board[i]==None):
+                board[i] = emptyTile(i)
+            else:
+                continue
+        return board
 
     def setPiece(self, piece):
 #        print("piece",piece)
 #        print("self.boardConfig before",self.boardConfig[piece.getPiecePosition()])
 #        print(occupiedTile(piece.getPiecePosition(), piece))
+#        print("inside set piece",piece)
         self.boardConfig[piece.getPiecePosition()] = occupiedTile(piece.getPiecePosition(),piece)
 #        print("self.boardConfig after",self.boardConfig[piece.getPiecePosition()])
         return self
@@ -297,13 +372,3 @@ class occupiedTile(Tile):
     def getPiece(cls):
         return cls.pieceOnTile
 
-
-
-x= Board(Builder()).createStandardBoard()
-import piece
-#print("start board", x.blackPieces[0].pieceType, x.blackPieces[0].piecePosition, x.blackPieces[0].Alliance)
-from move import majorMove
-#print(x.whiteStandardLegalMoves)
-#print(x.blackStandardLegalMoves)
-#print((len(x.whitePieces)))
-#print((len(x.blackPieces)))

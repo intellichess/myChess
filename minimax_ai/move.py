@@ -38,17 +38,24 @@ class Move:
         from test import Builder
         building = Builder()
         #if pieces on board weren't moved, make new board with pieces still there
-        for piece in self.board.currentPlayer().getActivePieces():
+        for piece in self.board.currentPlayer.getActivePieces():
             if(not self.movedPiece==piece):
                 building.setPiece(piece)
 
         #keep oponents pieces there
-        for piece in self.board.currentPlayer().getOpponent().getActivePieces():
+        for piece in self.board.currentPlayer.getOpponent().getActivePieces():
             building.setPiece(piece)
 
         #move piece and swap turns
+        #print("inside execute",self.movedPiece.movePiece(self))
+        #print("moved piece",self.movedPiece)
+        #band-aid
+        #print("destination",self.destinationCoordinate)
+        #if not(isinstance(self.destinationCoordinate, int)):
+        #when checking checkmate, self.destinationCoordinate contains a tile
+        #    print("destinationTile", self.destinationCoordinate.tileCoordinate)
         building.setPiece(self.movedPiece.movePiece(self))
-        building.setMoveMaker(self.board.currentPlayer().getOpponent().Alliance)
+        building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
         return  building.build()
 
 
@@ -92,27 +99,29 @@ class majorAttackMove(attackMove):
         return self.__dict__ == other.__dict__
 
 class pawnPromotion(Move):
-    def __init__(self, decoratedMove):
-        super().__init__(self)
+    def __init__(self, decoratedMove, movedPiece, board, destinationCoordinate):
+        super().__init__(movedPiece, board, destinationCoordinate)
         self.decoratedMove = decoratedMove
-        self.pawn = decoratedMove.getPiece()
+        self.pawn = decoratedMove.movedPiece
 
     def execute(self):
         pawnMovedBoard = self.decoratedMove.execute()
-        from test import Builder
+        from test import Builder, createGameBoard
         building = Builder()
         # if pieces on board weren't moved, make new board with pieces still there
-        for piece in pawnMovedBoard.currentPlayer().getActivePieces():
+        for piece in pawnMovedBoard.currentPlayer.getActivePieces():
             if (not self.pawn == piece):
                 building.setPiece(piece)
 
         # keep oponents pieces there
-        for piece in pawnMovedBoard.currentPlayer().getOpponent().getActivePieces():
+        for piece in pawnMovedBoard.currentPlayer.getOpponent().getActivePieces():
             building.setPiece(piece)
 
         # move piece and swap turns
         building.setPiece(self.pawn.getPromotionPiece().movePiece(self))
-        building.setMoveMaker(pawnMovedBoard.currentPlayer().getOpponent().Alliance)
+
+        building.setMoveMaker(pawnMovedBoard.currentPlayer.getAlliance())
+
         return building.build()
 
 
@@ -166,17 +175,18 @@ class pawnEnPassantAttackMove(pawnAttackMove):
         from test import Builder
         building = Builder()
         #if pieces on board weren't moved, make new board with pieces still there
-        for piece in self.board.currentPlayer().getActivePieces():
+        for piece in self.board.currentPlayer.getActivePieces():
             if(not self.movedPiece==piece):
                 building.setPiece(piece)
 
         #keep oponents pieces there
-        for piece in self.board.currentPlayer().getOpponent().getActivePieces():
-            building.setPiece(piece)
+        for piece in self.board.currentPlayer.getOpponent().getActivePieces():
+            if(not self.attackedPiece==piece):
+                building.setPiece(piece)
 
         #move piece and swap turns
         building.setPiece(self.movedPiece.movePiece(self))
-        building.setMoveMaker(self.board.currentPlayer().getOpponent().Alliance)
+        building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
         return  building.build()
 
 class pawnJump(Move):
@@ -193,21 +203,42 @@ class pawnJump(Move):
         import test
         from test import Builder
         building = Builder()
+        #print("before",building.boardConfig)
+        for i in range(64):
+            if (building.boardConfig[i] is not None):
+                print(building.boardConfig[i].getPiece())
+            else:
+                continue
+#        print("board object",self.board.currentPlayer.getActivePieces())
+        #print("movedPiece",self.movedPiece)
         #if pieces on board weren't moved, make new board with pieces still there
-        for piece in self.board.currentPlayer().getActivePieces():
+        for piece in self.board.currentPlayer.getActivePieces():
+            #print("piece Comparison",piece, self.movedPiece, not self.movedPiece==piece)
             if(not self.movedPiece==piece):
                 building.setPiece(piece)
 
         #keep oponents pieces there
-        for piece in self.board.currentPlayer().getOpponent().getActivePieces():
+        for piece in self.board.currentPlayer.getOpponent().getActivePieces():
             building.setPiece(piece)
 
         #move piece and swap turns
         import piece
-        movedPawn = piece.pawn(self.movedPiece.piecePosition, self.movedPiece.Alliance)
+        #print("after",building.boardConfig)
+        #for i in range(64):
+        #    if (building.boardConfig[i] is not None):
+        #        print(building.boardConfig[i].getPiece())
+        #    else:
+        #        continue
+        movedPawn = piece.pawn(self.destinationCoordinate, self.movedPiece.Alliance)
+        movedPawn.firstMove =False
+        #print("movedPawn var",movedPawn)
+        #print("opponent alliance",self.board.currentPlayer.getOpponent().getAlliance())
         building.setPiece(movedPawn)
         building.setEnPassantPawn(movedPawn)
-        building.setMoveMaker(self.board.currentPlayer().getOpponent().Alliance)
+        #print("before set move maker",building.nextMoveMaker)
+        building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
+#        print("after set move maker",building.nextMoveMaker)
+
         return  building.build()
 
 
@@ -235,20 +266,21 @@ class castleMove(Move):
         from test import Builder
         building = Builder()
         #if pieces on board weren't moved, make new board with pieces still there
-        for piece in self.board.currentPlayer().getActivePieces():
-            if(not self.movedPiece==piece and (not self.castleRook==piece)):
+        for piece in self.board.currentPlayer.getActivePieces():
+            if((not self.movedPiece==piece) and (not self.castleRook==piece)):
                 building.setPiece(piece)
 
         #keep oponents pieces there
-        for piece in self.board.currentPlayer().getOpponent().getActivePieces():
+        for piece in self.board.currentPlayer.getOpponent().getActivePieces():
             building.setPiece(piece)
 
         #move piece and swap turns
         #king
         building.setPiece(self.movedPiece.movePiece(self))
         #rook, look into first move for normal pieces
-        building.setPiece(piece.rook(self.castleRookDestination,self.castleRook.Alliance))
-        building.setMoveMaker(self.board.currentPlayer().getOpponent().Alliance)
+        from piece import rook
+        building.setPiece(rook(self.castleRookDestination,self.castleRook.Alliance))
+        building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
         return  building.build()
 
 class kingSideCastleMove(castleMove):
