@@ -1,4 +1,5 @@
 from test import Board, Builder, prettyBoard, moveToString
+from convertion import moveToByte
 from ai import minimax
 import sys
 sys.setrecursionlimit(10000)
@@ -8,7 +9,7 @@ y = Board(Builder()).createStandardBoard()
 x = Board(Builder()).createStandardBoard()
 #print(x.currentPlayer.getActivePieces())
 prettyBoard(x.board)
-for a in range(10):
+for a in range(1):
 #while (y.currentPlayer.isCheckmate()==False):
 #    a=a+1
     #print("\n","\n")
@@ -17,9 +18,13 @@ for a in range(10):
     depth = 3
     evaluate = minimax(x,depth)
     bestMove=evaluate.execute()
-#    print(moveToString(bestMove, y.currentPlayer))
+    #byte conversion here
+    moveByte = moveToByte(bestMove)
+    print("string in bytes",moveByte)
+#   moveToString(bestMove, y.currentPlayer))
     print("best move",bestMove)
     print("loop number",a)
+#    print("list size of legal moves", len(x.currentPlayer.legalMoves))
     #not passing 9 because king is in check and isnt getting rid of it, not generating any attack moves
     for i in range(len(x.currentPlayer.legalMoves)):
         list = x.currentPlayer.legalMoves[i]
