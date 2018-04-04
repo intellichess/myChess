@@ -27,8 +27,62 @@ def prettyBoard(board):
                 print(" --",end="")
     print("")
 
-def moveToString():
-    pass
+def moveToString(move, player):
+    from boardutils import algebraBoard
+    string = ""
+    legalMoves = player.legalMoves
+    if(move.isCastlingMove()):
+        if(move.movedPiece.Alliance.value == 1):
+            #kingCastle
+            if((move.destinationCoordinate==6 and move.castleMoveDestination == 5) or \
+            (move.destinationCoordinate == 62 and move.castleMoveDestination == 61)):
+                string = "0-0 "
+                return string
+        else:
+            #queenCastle
+            if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or \
+                    (move.destinationCoordinate == 58 and move.castleMoveDestination == 59)):
+                string = "0-0-0 "
+                return string
+
+    elif(move.isAttack()):
+        string = move.movedPiece.pieceType
+        for i in range(len(legalMoves)):
+            if (legalMoves[i] == 0):
+                pass
+            else:
+                for j in range(len(legalMoves[i])):
+                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
+                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
+                        print("is same move", legalMoves[i][j]==move)
+                        string = string + algebraBoard[i][0]
+
+        string = string + "x" + algebraBoard[move.destinationCoordinate]
+        if (player.getOpponent().isInCheck):
+            string = string + "+" + " "
+        else:
+            string = string + " "
+        return string
+
+    else:
+        string = move.movedPiece.pieceType
+        for i in range(len(legalMoves)):
+            if (legalMoves[i] == 0):
+                pass
+            else:
+                for j in range(len(legalMoves[i])):
+                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
+                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
+                        print("is same move", legalMoves[i][j] == move)
+                        string = string + algebraBoard[i][0]
+
+        string = string + algebraBoard[move.destinationCoordinate]
+        if (player.getOpponent().isInCheck):
+            string = string + "+" + " "
+        else:
+            string = string + " "
+        return string
+
 
 def calculateLivePieces(board, color):
     import piece
@@ -74,6 +128,12 @@ class Board:
         #change to opposite player after each move
         self.currentPlayer = Alliance.choosePlayer(builder.nextMoveMaker, self.whitePlayer , self.blackPlayer)
 #        print("current player in board class",self.currentPlayer)
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
     def getEnPassantPawn(self):
         return self.enPassantPawn
@@ -121,7 +181,6 @@ class Board:
 #                for j in range(len(pieces[i].findLegalMoves(self))):
 #                    print(i,pieces[i].findLegalMoves(self)[j].destinationCoordinate, pieces[i].findLegalMoves(self)[j].movedPiece);
 #make legalMoves a single array
-
             legalMoves.append(pieces[i].findLegalMoves(self))
         return legalMoves
 

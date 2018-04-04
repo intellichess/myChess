@@ -1,20 +1,23 @@
-from test import Board, Builder, prettyBoard
+from test import Board, Builder, prettyBoard, moveToString
 from ai import minimax
 import sys
 sys.setrecursionlimit(10000)
-
+a = 0
 
 y = Board(Builder()).createStandardBoard()
 x = Board(Builder()).createStandardBoard()
 #print(x.currentPlayer.getActivePieces())
 prettyBoard(x.board)
-for a in range(40):
+for a in range(10):
+#while (y.currentPlayer.isCheckmate()==False):
+#    a=a+1
     #print("\n","\n")
     x = y
     #print(x==y)
     depth = 3
     evaluate = minimax(x,depth)
     bestMove=evaluate.execute()
+#    print(moveToString(bestMove, y.currentPlayer))
     print("best move",bestMove)
     print("loop number",a)
     #not passing 9 because king is in check and isnt getting rid of it, not generating any attack moves

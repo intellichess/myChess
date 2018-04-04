@@ -24,8 +24,8 @@ class standardBoardEvaluator:
     def scorePlayer(self, board, player, depth):
         a = self.pieceValue(player)
         b = self.mobilityRatio(player)*mobilityMultiplier
-        c = 0#self.kingThreats(player, depth)
-        d = 0 #self.pawnBlock(player, board.board)
+        c = self.kingThreats(player, depth)
+        d = self.pawnBlock(player, board.board)
         e = self.pawnDouble(player) * doubledPawnPenalty
         f = self.pawnIsolated(player, board.board)*isolatedPawnPenalty
         g = 0 #self.calcKingTropism(player).tropismScore()
@@ -58,8 +58,9 @@ class standardBoardEvaluator:
             else:
                 for j in range(len(player.legalMoves[i])):
                     if(player.legalMoves[i][j].isAttack()):
+#                        print("in attack",player.legalMoves[i][j])
                         movedPiece = player.legalMoves[i][j].movedPiece
-                        attackedPiece = player.legalMoves[i][j].attackedPiece
+                        attackedPiece = player.legalMoves[i][j].getAttackedPiece()
                         if (movedPiece.pieceValue<=attackedPiece.pieceValue):
                             attackScore+=1
 
@@ -280,84 +281,67 @@ class minimax:
         bestMove = None
         highestVal = -sys.maxsize-1
         lowestVal = sys.maxsize
-        print(self.boardEvaluator.board.currentPlayer," thinking at depth: ",self.boardEvaluator.depth)
-#        print(sys.maxsize)
-#        print("move list length",len(self.boardEvaluator.board.currentPlayer.legalMoves))
+        print(self.boardEvaluator.board.currentPlayer.getAllianceName()," thinking at depth: ",self.boardEvaluator.depth)
         for i in range(len(self.boardEvaluator.board.currentPlayer.legalMoves)):
             if (self.boardEvaluator.board.currentPlayer.legalMoves[i] == 0):
                 pass
             else:
                 for j in range(len(self.boardEvaluator.board.currentPlayer.legalMoves[i])):
                     move=self.boardEvaluator.board.currentPlayer.legalMoves[i][j]
-#                    print("move",i,j,move)
                     moveTranstiotion = self.boardEvaluator.board.currentPlayer.makeMove(move)
-#                    print("move made", moveTranstiotion)
-                    #moveTransition makes moves illegal
-#                    print("moveTransition value", moveTranstiotion.getMoveStatus())
                     if(moveTranstiotion.getMoveStatus().value):
                         if (self.boardEvaluator.board.currentPlayer.getAlliance()==-1):
-#                            print("before min")
-                            currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1)
-#                            print("after min")
-#                            print("currentval>=highestval",currentVal>=highestVal, currentVal, highestVal)
-                            if (currentVal>=highestVal):
+                            currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
+                                                      highestVal, lowestVal)
+                            if (currentVal>highestVal):
 #                                print("compare highest")
                                 highestVal = currentVal
                                 bestMove = move
+                                if (moveTranstiotion.getExecuteBoard().getBlackPlayer().isCheckmate()):
+                                    break
                         else:
-#                            print("before max")
-                            currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1)
-#                            print("after max")
-#                            print("currentval<=highestval",currentVal<=lowestVal, currentVal, lowestVal)
-                            if (currentVal<=lowestVal):
+                            currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
+                                                      highestVal, lowestVal)
+                            if (currentVal<lowestVal):
 #                                print("compare lowest")
                                 lowestVal = currentVal
                                 bestMove = move
+                                if (moveTranstiotion.getExecuteBoard().getWhitePlayer().isCheckmate()):
+                                    break
 
 
         return bestMove
 
 
-    def minimum(self, board, depth):
-#        print("min",depth==0 or self.endGame(board))
-#        print("here")
+    def minimum(self, board, depth, highest, lowest):
         if(depth==0 or self.endGame(board)):
             return self.boardEvaluator.evaluate(board, depth)
-#            print("evaluated",self.boardEvaluator.evaluate())
-
-        #search list accurately
         else:
-            import sys
-            lowestVal = sys.maxsize
-#            print("start move list search")
+            currentLowest = lowest
             for i in range(len(board.currentPlayer.legalMoves)):
                 if (board.currentPlayer.legalMoves[i] == 0):
                     pass
                 else:
                     for j in range(len(board.currentPlayer.legalMoves[i])):
                         move = board.currentPlayer.legalMoves[i][j]
-#                        print("move", move)
                         moveTransition = board.currentPlayer.makeMove(move)
-#                        print("enters loop", moveTransition.getMoveStatus().value)
                         if(moveTransition.getMoveStatus().value):
-                            currentVal = self.maximum(moveTransition.getTransitionBoard(), depth-1)
-                            #currentVal = self.boardEvaluator.evaluate()
-#                            print("currentval<=highestval in minimum", currentVal <= lowestVal)
-                            if (currentVal <= lowestVal):
-                                lowestVal = currentVal
+                            currentLowest = min(currentLowest,self.maximum(moveTransition.getExecuteBoard(), \
+                                                                     depth-1, highest, currentLowest))
+                            if (currentLowest <= highest):
+                                return highest
 
-#            print(depth,lowestVal)
-            return lowestVal
+            return currentLowest
 
-    def maximum(self, board, depth):
-#        print("max",depth==0 or self.endGame(board))
-#        print("here")
+    def maximum(self,
+                board,
+                depth,
+                highest,
+                lowest):
         if (depth==0 or self.endGame(board)):
             return self.boardEvaluator.evaluate(board, depth)
         else:
-            import sys
-            highestVal = -sys.maxsize-1
-            #search list accurately
+            currentHighest = highest
             for i in range(len(board.currentPlayer.legalMoves)):
                 if (board.currentPlayer.legalMoves[i] == 0):
                     pass
@@ -366,15 +350,12 @@ class minimax:
                         move = board.currentPlayer.legalMoves[i][j]
                         moveTransition = board.currentPlayer.makeMove(move)
                         if(moveTransition.getMoveStatus().value):
-                            currentVal = self.minimum(moveTransition.getTransitionBoard(), depth-1)
-#                            print(moveTransition.getTransitionBoard())
-                            #currentVal = self.boardEvaluator.evaluate()
-#                            print("currentval>=highestval, in maximum", currentVal >= highestVal)
-                            if (currentVal >= highestVal):
-                                highestVal = currentVal
+                            currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), \
+                                                      depth-1, currentHighest, lowest))
+                            if (currentHighest >= lowest):
+                                return lowest
 
-#            print(depth,highestVal)
-            return highestVal
+            return currentHighest
 
     def endGame(self, board):
         return board.currentPlayer.isCheckmate() or board.currentPlayer.isStalemate()

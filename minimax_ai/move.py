@@ -30,6 +30,9 @@ class Move:
     def isCastlingMove(self):
         return False
 
+    def isPromotionMove(self):
+        return False
+
     def getAttackedPiece(self):
         return None
 
@@ -103,6 +106,9 @@ class pawnPromotion(Move):
         super().__init__(movedPiece, board, destinationCoordinate)
         self.decoratedMove = decoratedMove
         self.pawn = decoratedMove.movedPiece
+
+    def isPromotionMove(self):
+        return True
 
     def execute(self):
         pawnMovedBoard = self.decoratedMove.execute()
