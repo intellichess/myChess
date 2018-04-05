@@ -17,3 +17,25 @@ def moveToByte(move):
     moveStr = startStr+"|"+endStr
     byteStr = bytes(moveStr, "ascii")
     return byteStr
+
+def stringParser(string):
+    tilesInts = [0,0]
+    stringPieces = string.split("|")
+    tilesInts[0] = tileGet(int(stringPieces[1]), int(stringPieces[2]))
+    tilesInts[1] = tileGet(int(stringPieces[3]), int(stringPieces[4]))
+    return tilesInts
+
+def tileGet(x, y):
+    row = 7-y
+    col = x
+    return 8*row+col
+
+def moveGet(startTile, endTile, board):
+    for i in range(len(board.currentPlayer.legalMoves)):
+        if (board.currentPlayer.legalMoves[i] == 0):
+            pass
+        else:
+            for j in range(len(board.currentPlayer.legalMoves[i])):
+                foundMove = board.currentPlayer.legalMoves[i][j]
+                if (foundMove.movedPiece.piecePosition == startTile and foundMove.destinationCoordinate == endTile):
+                    return foundMove

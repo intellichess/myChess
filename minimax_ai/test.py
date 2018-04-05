@@ -173,14 +173,6 @@ class Board:
 #        print(pieces)
         # for all pieces in the list
         for i in range(len(pieces)):
-            from move import majorMove
-#            print(pieces[i].findLegalMoves(self))
-#            if (pieces[i].findLegalMoves(self)==0):
-#                continue
-#            else:
-#                for j in range(len(pieces[i].findLegalMoves(self))):
-#                    print(i,pieces[i].findLegalMoves(self)[j].destinationCoordinate, pieces[i].findLegalMoves(self)[j].movedPiece);
-#make legalMoves a single array
             legalMoves.append(pieces[i].findLegalMoves(self))
         return legalMoves
 
@@ -235,67 +227,6 @@ class Board:
         return building.build()
 
 
-    def createCheckBoard(self):
-        import piece
-        import color
-        building = Builder()
-        building.setPiece(piece.rook(0, color.Alliance.black))
-        building.setPiece(piece.king(56, color.Alliance.black))
-        building.setPiece(piece.king(4, color.Alliance.white))
-
-        building.setMoveMaker(color.Alliance.white.value)
-
-
-        return building.build()
-
-    def createMateBoard(self):
-        import piece
-        import color
-        building = Builder()
-        building.setPiece(piece.rook(0, color.Alliance.black))
-        building.setPiece(piece.rook(8, color.Alliance.black))
-        building.setPiece(piece.king(56, color.Alliance.black))
-        building.setPiece(piece.king(4, color.Alliance.white))
-
-        building.setMoveMaker(color.Alliance.white.value)
-
-
-        return building.build()
-
-    def createPromoteBoard(self):
-        import piece
-        import color
-        building = Builder()
-        building.setPiece(piece.pawn(8, color.Alliance.white))
-        building.setPiece(piece.pawn(9, color.Alliance.black))
-        building.setPiece(piece.pawn(48, color.Alliance.white))
-        building.setPiece(piece.pawn(49, color.Alliance.black))
-        building.setPiece(piece.king(63, color.Alliance.black))
-        building.setPiece(piece.king(7, color.Alliance.white))
-
-        building.setMoveMaker(color.Alliance.white.value)
-
-
-        return building.build()
-
-    def createMoveBoard(self):
-        import piece
-        import color
-        building = Builder()
-
-#        building.setPiece(piece.pawn(35, color.Alliance.white))
-#        building.setPiece(piece.rook(35, color.Alliance.white))
-#        building.setPiece(piece.knight(35, color.Alliance.white))
-        building.setPiece(piece.bishop(5, color.Alliance.white))
-#        building.setPiece(piece.queen(35, color.Alliance.white))
-
-        building.setPiece(piece.king(63, color.Alliance.white))
-        building.setPiece(piece.king(0, color.Alliance.black))
-
-        building.setMoveMaker(color.Alliance.white.value)
-        #building.setMoveMaker(color.Alliance.black.value)
-
-        return building.build()
 
 ##########################################################
 
