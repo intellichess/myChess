@@ -137,7 +137,7 @@ class bishop(Piece):
                             legalMoves.append(attackMove(self, board, canidateDestinationCoordinate, pieceOnTile))
                         break
 
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
         piece = bishop(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
@@ -206,7 +206,7 @@ class knight(Piece):
                         #capture
                         legalMoves.append(attackMove(self,board,destination,pieceOnTile))
 
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
         piece = knight(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
@@ -268,7 +268,7 @@ class rook(Piece):
                             legalMoves.append(attackMove(self, board, canidateDestinationCoordinate, pieceOnTile))
                         break
 
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
         piece = rook(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
@@ -454,7 +454,7 @@ class pawn(Piece):
                             from move import pawnEnPassantAttackMove
                             legalMoves.append(pawnEnPassantAttackMove(self, board, canidateDestinationCoordinate, pieceOnCanidate))
 
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
         piece = pawn(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
@@ -519,16 +519,9 @@ class king(Piece):
                         legalMoves.append(attackMove(self,board,canidateDestinatonCoordinate,pieceOnTile))
 
 
-        return legalMoves.copy()
+        return legalMoves
 
     def movePiece(self, move):
-        #print("inside set piece", self)
-        #tile with correct destination coordinate created and is taking place of int value
-        #index = 0
-        #if not(isinstance(move.getDestinationCoordinate(), int)):
-        #    index = move.getDestinationCoordinate().tileCoordinate
-        #else:
-        #    index = move.getDestinationCoordinate()
         piece = king(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
         piece.firstMove = False
         return piece

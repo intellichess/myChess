@@ -9,6 +9,9 @@ class Move:
         self.destinationCoordinate = destinationCoordinate
         self.isFirstMove = movedPiece.isFirstMove()
 
+    def getBoard(self):
+        return self.board
+
     def getMovedPiece(self):
         return self.movedPiece
 
@@ -59,6 +62,7 @@ class Move:
         #    print("destinationTile", self.destinationCoordinate.tileCoordinate)
         building.setPiece(self.movedPiece.movePiece(self))
         building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
+        building.setTransitionMove(self)
         return  building.build()
 
 
@@ -128,6 +132,8 @@ class pawnPromotion(Move):
 
         building.setMoveMaker(pawnMovedBoard.currentPlayer.getAlliance())
 
+        building.setTransitionMove(self)
+
         return building.build()
 
 
@@ -193,6 +199,7 @@ class pawnEnPassantAttackMove(pawnAttackMove):
         #move piece and swap turns
         building.setPiece(self.movedPiece.movePiece(self))
         building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
+        building.setTransitionMove(self)
         return  building.build()
 
 class pawnJump(Move):
@@ -243,6 +250,7 @@ class pawnJump(Move):
         building.setEnPassantPawn(movedPawn)
         #print("before set move maker",building.nextMoveMaker)
         building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
+        building.setTransitionMove(self)
 #        print("after set move maker",building.nextMoveMaker)
 
         return  building.build()
@@ -282,11 +290,13 @@ class castleMove(Move):
 
         #move piece and swap turns
         #king
+        self.movedPiece.isCastled = True
         building.setPiece(self.movedPiece.movePiece(self))
         #rook, look into first move for normal pieces
         from piece import rook
         building.setPiece(rook(self.castleRookDestination,self.castleRook.Alliance))
         building.setMoveMaker(self.board.currentPlayer.getOpponent().getAlliance())
+        building.setTransitionMove(self)
         return  building.build()
 
 class kingSideCastleMove(castleMove):

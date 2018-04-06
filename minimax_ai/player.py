@@ -41,12 +41,8 @@ class Player:
     #check if move is in legalmoves for player
     def isMoveLegal(self, move):
         for i in range(len(self.legalMoves)):
-            for j in range(len(self.legalMoves[i])):
-                #print("in is move legal",j,self.legalMoves[i][j])
-#                print("inside is move legal",'\n',self.legalMoves[i][j], '\n', move, '\n', self.legalMoves[i][j]==move)
-                if (self.legalMoves[i][j]==move):
-                    #print("conditional true",move)
-                    return True
+            if (self.legalMoves[i]==move):
+                return True
         return False #return true if move legal
 
     def calculateAttacksOnTile(self, position, moves):
@@ -62,13 +58,10 @@ class Player:
     def hasEscapeMoves(self):
         #print(self.legalMoves)
         for i in range(len(self.legalMoves)):
-#            print("has escape moves",self.legalMoves)#[2][2].movedPiece)
-            for j in range(len(self.legalMoves[i])):
-#                print("inside escape moves",self.legalMoves[i][j])
-                transition = self.makeMove(self.legalMoves[i][j])
-                #print(transition.getMoveStatus().value)
-                if(transition.getMoveStatus().value):
-                    return True
+            transition = self.makeMove(self.legalMoves[i])
+            #print(transition.getMoveStatus().value)
+            if(transition.getMoveStatus().value):
+                return True
         return False
 
     def isStalemate(self):
@@ -106,7 +99,7 @@ class blackPlayer(Player):
     def __init__(self, board, legalMoves, opponentLegalMoves):
         super().__init__(board, legalMoves)
         self.opponentLegalMoves = opponentLegalMoves
-        self.legalMoves +=  [self.calculateKingCastles(self.legalMoves,self.opponentLegalMoves)]
+        self.legalMoves +=  self.calculateKingCastles(self.legalMoves,self.opponentLegalMoves)
         self.king = establishKing(self)
         self.isInCheck = not (len(self.calculateAttacksOnPiece(self.king, opponentLegalMoves))==0)
 
@@ -129,26 +122,23 @@ class blackPlayer(Player):
         #return None
         attackMoves = []
         #print(moves)
-        for pieceMoves in moves:
+        for pieceMove in moves:
             #print(pieceMoves)
-            for move in pieceMoves:
-                if (position == move.getDestinationCoordinate()):
-                    attackMoves.append(move)
+            if (position == pieceMove.getDestinationCoordinate()):
+                attackMoves.append(pieceMove)
         #print(attackMoves)
-        return attackMoves.copy()
+        return attackMoves
 
     def calculateAttacksOnPiece(self, piece, moves):
         #return None
         attackMoves = []
         if (hasattr(piece, 'piecePosition')):
             position = piece.getPiecePosition()
-            for pieceMoves in moves:
-                #print(pieceMoves)
-                for move in pieceMoves:
-                    if (position == move.getDestinationCoordinate()):
-                        attackMoves.append(move)
+            for pieceMove in moves:
+                if (position == pieceMove.getDestinationCoordinate()):
+                    attackMoves.append(pieceMove)
             #print(attackMoves)
-            return attackMoves.copy()
+            return attackMoves
         else:
             return attackMoves
 
@@ -196,7 +186,7 @@ class whitePlayer(Player):
     def __init__(self, board, legalMoves, opponentLegalMoves):
         super().__init__(board, legalMoves)
         self.opponentLegalMoves = opponentLegalMoves
-        self.legalMoves += [self.calculateKingCastles(self.legalMoves, self.opponentLegalMoves)]
+        self.legalMoves += self.calculateKingCastles(self.legalMoves, self.opponentLegalMoves)
         self.king = establishKing(self)
         self.isInCheck = not len(self.calculateAttacksOnPiece(self.king, opponentLegalMoves))==0
 
@@ -218,27 +208,22 @@ class whitePlayer(Player):
         #return None
         attackMoves = []
 
-        for pieceMoves in moves:
-#            print(pieceMoves)
-            for move in pieceMoves:
-#                print(move, move.destinationCoordinate)
-                if (position == move.getDestinationCoordinate()):
-                    attackMoves.append(move)
+        for pieceMove in moves:
+            if (position == pieceMove.getDestinationCoordinate()):
+                attackMoves.append(pieceMove)
         #print(attackMoves)
-        return attackMoves.copy()
+        return attackMoves
 
     def calculateAttacksOnPiece(self, piece, moves):
         #return None
         attackMoves = []
         if (hasattr(piece, 'piecePosition')):
             position = piece.getPiecePosition()
-            for pieceMoves in moves:
-                #print(pieceMoves)
-                for move in pieceMoves:
-                    if (position == move.getDestinationCoordinate()):
-                        attackMoves.append(move)
+            for pieceMove in moves:
+                if (position == pieceMove.getDestinationCoordinate()):
+                    attackMoves.append(pieceMove)
             #print(attackMoves)
-            return attackMoves.copy()
+            return attackMoves
         else:
             return attackMoves
 
@@ -275,7 +260,7 @@ class whitePlayer(Player):
                                     rookTile.getPiece(), rookTile.getTileCoordinate(), 59))
         else:
             pass
-        return kingCastles.copy()
+        return kingCastles
 
 ##################################################################
 

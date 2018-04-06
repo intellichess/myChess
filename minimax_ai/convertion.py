@@ -32,10 +32,6 @@ def tileGet(x, y):
 
 def moveGet(startTile, endTile, board):
     for i in range(len(board.currentPlayer.legalMoves)):
-        if (board.currentPlayer.legalMoves[i] == 0):
-            pass
-        else:
-            for j in range(len(board.currentPlayer.legalMoves[i])):
-                foundMove = board.currentPlayer.legalMoves[i][j]
-                if (foundMove.movedPiece.piecePosition == startTile and foundMove.destinationCoordinate == endTile):
-                    return foundMove
+        foundMove = board.currentPlayer.legalMoves[i]
+        if (foundMove.movedPiece.piecePosition == startTile and foundMove.destinationCoordinate == endTile):
+            return foundMove

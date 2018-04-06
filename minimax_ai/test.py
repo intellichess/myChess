@@ -127,7 +127,10 @@ class Board:
         self.blackPlayer = blackPlayer(self, self.blackStandardLegalMoves, self.whiteStandardLegalMoves)
         #change to opposite player after each move
         self.currentPlayer = Alliance.choosePlayer(builder.nextMoveMaker, self.whitePlayer , self.blackPlayer)
-#        print("current player in board class",self.currentPlayer)
+        if (builder.transitionMove is not None):
+            self.transitionMove = builder.transitionMove
+        else:
+            self.transitionMove = None
 
     def __str__(self):
         return str(self.__dict__)
@@ -137,6 +140,9 @@ class Board:
 
     def getEnPassantPawn(self):
         return self.enPassantPawn
+
+    def getTransitionMove(self):
+        return self.transitionMove
 
     def getBoard(self):
         return self.board
@@ -170,10 +176,12 @@ class Board:
         import piece
         from piece import bishop, knight, king, rook, pawn, queen
         legalMoves = []
+        #legalMoves2 = []
 #        print(pieces)
         # for all pieces in the list
         for i in range(len(pieces)):
-            legalMoves.append(pieces[i].findLegalMoves(self))
+            #legalMoves.append(pieces[i].findLegalMoves(self))
+            legalMoves = legalMoves + pieces[i].findLegalMoves(self)
         return legalMoves
 
 ##error here, create tile, builder
@@ -235,11 +243,15 @@ class Builder(Board):
         self.boardConfig = [None]*64
         self.nextMoveMaker = 0
         self.pawn = None
+        self.transitionMove = None
 
     def build(self):
         #print("self", self.boardConfig)
 #        print("in build class",self.nextMoveMaker)
         return Board(self)
+
+    def setTransitionMove(self, move):
+        self.transitionMove = move
 
     def setMoveMaker(self, nextMoveMaker):
         #get alliance
@@ -292,20 +304,6 @@ class Tile:
     def getTileCoordinate(cls):
         return cls.tileCoordinate
 
-    #convert to python dictionary
-
-
-#    def createEmptyBoard():
-#        cols = 8
-#        rows = 8
-#        inc = 0
-#        emptyBoard=[[0 for i in range(rows)] for j in range(cols)]
-#        for i in range(rows):
-#            for j in range(cols):
-#                emptyBoard[i][j]=emptyTile(inc)
-#                inc = inc + 1
-
-#        return emptyBoard
 
 #piece not piece, is a new tile
     @classmethod

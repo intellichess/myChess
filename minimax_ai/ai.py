@@ -1,3 +1,4 @@
+from collections import defaultdict
 checkmateBonus = 10000
 checkBonus = 50
 mobilityMultiplier = 2
@@ -25,15 +26,14 @@ class standardBoardEvaluator:
         a = self.pieceValue(player)
         b = self.mobilityRatio(player)*mobilityMultiplier
         c = self.kingThreats(player, depth)
-        d = self.pawnBlock(player, board.board)
-        e = self.pawnDouble(player) * doubledPawnPenalty
-        f = self.pawnIsolated(player, board.board)*isolatedPawnPenalty
+        e = self.isolatedPenalty(player) * isolatedPawnPenalty #self.pawnBlock(player, board.board) * self.pawnDouble(player) * isolatedPawnPenalty #
+        f = self.doubledPenalty(player) * doubledPawnPenalty #self.pawnIsolated(player, board.board) * doubledPawnPenalty
         g = 0 #self.calcKingTropism(player).tropismScore()
         h = self.attack(player) * attackMultiplier
-        i = 0 #self.castled(player)
-        reduce = d+e+f
+        i = self.castled(player)
+        reduce = e+f
 #        print(player.getAllianceName(), d)
-        return a + b + c + h - reduce
+        return a + b + c + h + i - reduce
                #+ self.castled(player)
 
     def pieceValue(self, player):
@@ -45,24 +45,19 @@ class standardBoardEvaluator:
             pieceValueScore += pieceList[i].pieceValue + pieceList[i].locationBonus()
             if(pieceList[i].pieceType=="b"):
                 numBishops+=1
-            if(numBishops==2):
-                pieceValueScore+=allBishopBonus
-#        print("pieceValueScore",pieceValueScore)
+        if (numBishops == 2):
+            pieceValueScore += allBishopBonus
         return pieceValueScore
 
     def attack(self,player):
         attackScore = 0
         for i in range(len(player.legalMoves)):
-            if (player.legalMoves[i] == 0):
-                pass
-            else:
-                for j in range(len(player.legalMoves[i])):
-                    if(player.legalMoves[i][j].isAttack()):
+            if(player.legalMoves[i].isAttack()):
 #                        print("in attack",player.legalMoves[i][j])
-                        movedPiece = player.legalMoves[i][j].movedPiece
-                        attackedPiece = player.legalMoves[i][j].getAttackedPiece()
-                        if (movedPiece.pieceValue<=attackedPiece.pieceValue):
-                            attackScore+=1
+                movedPiece = player.legalMoves[i].movedPiece
+                attackedPiece = player.legalMoves[i].getAttackedPiece()
+                if (movedPiece.pieceValue<=attackedPiece.pieceValue):
+                    attackScore+=1
 
         return attackScore
 
@@ -75,11 +70,7 @@ class standardBoardEvaluator:
         mobilityScore = 0
 #        print("mobility", player.getAllianceName())
         for i in range(len(player.legalMoves)):
-            if (player.legalMoves[i] == 0):
-                pass
-            else:
-                for j in range(len(player.legalMoves[i])):
-                    mobilityScore += 1
+            mobilityScore += 1
 #        print("mobilityScore",mobilityScore)
         return mobilityScore
 
@@ -177,6 +168,39 @@ class standardBoardEvaluator:
                         pass
         return double
 
+    def calculatePlayerPawns(self, player):
+        pawnList=[]
+        for piece in player.getActivePieces():
+            if (piece.pieceType=="p"):
+                pawnList.append([piece])
+        return pawnList
+
+    def createPawnColumnTable(self, pawnList):
+        pawnColumnList = defaultdict(list)
+        for i in range(len(pawnList)):
+            pawnColumnList[pawnList[i][0].piecePosition%8] = pawnList[i]
+        return pawnColumnList
+
+    def calculatePawnDoublePenalty(self, pawnTable):
+        double = 0
+        for i in range(8):
+            if (len(pawnTable[i])>1):
+                double+= len(pawnTable[i])
+        return double
+
+    def calculatePawnIsolatedPenalty(self, pawnTable):
+        isolated = 0
+        for i in range(8):
+            if (len(pawnTable[i-1])==0 and len(pawnTable[i+1])==0):
+                isolated += len(pawnTable[i])
+        return isolated
+
+    def isolatedPenalty(self, player):
+        return self.calculatePawnIsolatedPenalty(self.createPawnColumnTable(self.calculatePlayerPawns(player)))
+
+    def doubledPenalty(self, player):
+        return self.calculatePawnDoublePenalty(self.createPawnColumnTable(self.calculatePlayerPawns(player)))
+
     def getCollumn(self, coordinate):
         from boardutils import col1,col2,col3,col4,col5,col6,col7,col8
         if (col1[coordinate]):
@@ -216,13 +240,6 @@ class standardBoardEvaluator:
             return 8
 
     def chebyshevDistance(self, kingTile, enemyTile):
-        #tile1 = kingTile
-        #tile2 = 0
-        #if (isinstance(enemyTile, int)):
-        #    tile2 = enemyTile
-        #else:
-        #    tile2 = enemyTile.tileCoordinate
-
 
         kingCollumn = self.getCollumn(kingTile)
         enemyCollumn = self.getCollumn(enemyTile)
@@ -241,22 +258,19 @@ class standardBoardEvaluator:
         closestPiece = None
         closestDistance = 1000
         for i in range(len(enemyMoves)):
-            if (enemyMoves[i]==0):
-                pass
-            else:
-                for j in range(len(enemyMoves[i])):
-                    currentDistance = self.chebyshevDistance(playerKingSquare, enemyMoves[i][j].getDestinationCoordinate())
-                    if (currentDistance<closestDistance):
-                        closestDistance = currentDistance
-                        closestPiece = enemyMoves[i][j].getMovedPiece()
+            currentDistance = self.chebyshevDistance(playerKingSquare, enemyMoves[i].getDestinationCoordinate())
+            if (currentDistance<closestDistance):
+                closestDistance = currentDistance
+                closestPiece = enemyMoves[i].getMovedPiece()
 
         return kingDistance(closestPiece, closestDistance)
 
     def castled(self, player):
         if (player.isCastled()):
-            return 50
+            return 60
         else:
             return 0
+
 
 class kingDistance:
     def __init__(self, enemyPiece, distance):
@@ -283,31 +297,27 @@ class minimax:
         lowestVal = sys.maxsize
         print(self.boardEvaluator.board.currentPlayer.getAllianceName()," thinking at depth: ",self.boardEvaluator.depth)
         for i in range(len(self.boardEvaluator.board.currentPlayer.legalMoves)):
-            if (self.boardEvaluator.board.currentPlayer.legalMoves[i] == 0):
-                pass
-            else:
-                for j in range(len(self.boardEvaluator.board.currentPlayer.legalMoves[i])):
-                    move=self.boardEvaluator.board.currentPlayer.legalMoves[i][j]
-                    moveTranstiotion = self.boardEvaluator.board.currentPlayer.makeMove(move)
-                    if(moveTranstiotion.getMoveStatus().value):
-                        if (self.boardEvaluator.board.currentPlayer.getAlliance()==-1):
-                            currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
-                                                      highestVal, lowestVal)
-                            if (currentVal>highestVal):
+            move=self.boardEvaluator.board.currentPlayer.legalMoves[i]
+            moveTranstiotion = self.boardEvaluator.board.currentPlayer.makeMove(move)
+            if(moveTranstiotion.getMoveStatus().value):
+                if (self.boardEvaluator.board.currentPlayer.getAlliance()==-1):
+                    currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
+                                              highestVal, lowestVal)
+                    if (currentVal>highestVal):
 #                                print("compare highest")
-                                highestVal = currentVal
-                                bestMove = move
-                                if (moveTranstiotion.getExecuteBoard().getBlackPlayer().isCheckmate()):
-                                    break
-                        else:
-                            currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
-                                                      highestVal, lowestVal)
-                            if (currentVal<lowestVal):
+                        highestVal = currentVal
+                        bestMove = move
+                        if (moveTranstiotion.getExecuteBoard().getBlackPlayer().isCheckmate()):
+                            break
+                else:
+                    currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
+                                              highestVal, lowestVal)
+                    if (currentVal<lowestVal):
 #                                print("compare lowest")
-                                lowestVal = currentVal
-                                bestMove = move
-                                if (moveTranstiotion.getExecuteBoard().getWhitePlayer().isCheckmate()):
-                                    break
+                        lowestVal = currentVal
+                        bestMove = move
+                        if (moveTranstiotion.getExecuteBoard().getWhitePlayer().isCheckmate()):
+                            break
 
 
         return bestMove
@@ -319,17 +329,13 @@ class minimax:
         else:
             currentLowest = lowest
             for i in range(len(board.currentPlayer.legalMoves)):
-                if (board.currentPlayer.legalMoves[i] == 0):
-                    pass
-                else:
-                    for j in range(len(board.currentPlayer.legalMoves[i])):
-                        move = board.currentPlayer.legalMoves[i][j]
-                        moveTransition = board.currentPlayer.makeMove(move)
-                        if(moveTransition.getMoveStatus().value):
-                            currentLowest = min(currentLowest,self.maximum(moveTransition.getExecuteBoard(), \
-                                                                     depth-1, highest, currentLowest))
-                            if (currentLowest <= highest):
-                                return highest
+                move = board.currentPlayer.legalMoves[i]
+                moveTransition = board.currentPlayer.makeMove(move)
+                if(moveTransition.getMoveStatus().value):
+                    currentLowest = min(currentLowest,self.maximum(moveTransition.getExecuteBoard(), \
+                                                             depth-1, highest, currentLowest))
+                    if (currentLowest <= highest):
+                        return highest
 
             return currentLowest
 
@@ -343,17 +349,13 @@ class minimax:
         else:
             currentHighest = highest
             for i in range(len(board.currentPlayer.legalMoves)):
-                if (board.currentPlayer.legalMoves[i] == 0):
-                    pass
-                else:
-                    for j in range(len(board.currentPlayer.legalMoves[i])):
-                        move = board.currentPlayer.legalMoves[i][j]
-                        moveTransition = board.currentPlayer.makeMove(move)
-                        if(moveTransition.getMoveStatus().value):
-                            currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), \
-                                                      depth-1, currentHighest, lowest))
-                            if (currentHighest >= lowest):
-                                return lowest
+                move = board.currentPlayer.legalMoves[i]
+                moveTransition = board.currentPlayer.makeMove(move)
+                if(moveTransition.getMoveStatus().value):
+                    currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), \
+                                              depth-1, currentHighest, lowest))
+                    if (currentHighest >= lowest):
+                        return lowest
 
             return currentHighest
 

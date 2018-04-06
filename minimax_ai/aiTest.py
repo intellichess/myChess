@@ -21,7 +21,7 @@ a = 0
 
 x = Board(Builder()).createStandardBoard()
 prettyBoard(x.board)
-for a in range(10):
+for a in range(20):
 #while (y.currentPlayer.isCheckmate()==False):
 #    a=a+1
     depth = 3

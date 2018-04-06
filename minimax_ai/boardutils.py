@@ -49,6 +49,16 @@ def initRow(rowNumber):
         #print(row[i])
     return row
 
+def lastNMoves(board, num):
+    moveHistory = []
+    currentMove = board.getTransitionMove()
+    i = 0
+    while(currentMove!=None and i<num):
+        moveHistory.append(currentMove)
+        currentMove = currentMove.getBoard().getTransitionMove()
+        i+=1
+    return moveHistory
+
 col1=col2=col7=col8=[]
 
 
