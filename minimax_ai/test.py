@@ -1,6 +1,11 @@
 #algebraic notation filler vid 37 18:00 and 40 17:00
 from piece import Piece, pawn, bishop, rook, knight, queen, king
 from color import Alliance
+whiteWins = -1
+blackWins = 1
+stalemate = 0
+inProgress = 2
+
 
 #board stuff
 def prettyBoard(board):
@@ -137,6 +142,27 @@ class Board:
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+    def getStatus(self):
+        if(self.currentPlayer.getAlliance()==-1):
+            if(self.currentPlayer.isCheckmate()):
+                return blackWins
+            elif(self.currentPlayer.getOpponent().isCheckmate()):
+                return whiteWins
+            elif(self.currentPlayer.isStalemate() or self.currentPlayer.getOpponent()):
+                return stalemate
+            else:
+                return inProgress
+
+        else:
+            if (self.currentPlayer.isCheckmate()):
+                return whiteWins
+            elif (self.currentPlayer.getOpponent().isCheckmate()):
+                return blackWins
+            elif (self.currentPlayer.isStalemate() or self.currentPlayer.getOpponent()):
+                return stalemate
+            else:
+                return inProgress
 
     def getEnPassantPawn(self):
         return self.enPassantPawn
