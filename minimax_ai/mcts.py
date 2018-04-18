@@ -23,8 +23,8 @@ class standardBoardEvaluator:
         self.board = board
 
     def evaluate(self, board):
-        return (self.scorePlayer(board, board.whitePlayer) - \
-                self.scorePlayer(board, board.blackPlayer))
+        return (self.scorePlayer(board, board.currentPlayer.getOpponent()) - \
+                self.scorePlayer(board, board.currentPlayer))
 
     def scorePlayer(self, board, player):
         a = self.pieceValue(player)
@@ -157,6 +157,20 @@ class Node:
         self.state = state
         self.parent = None
         self.childList = []
+        self.ID = 0
+        self.parentID = 0
+
+    def getID(self):
+        return self.ID
+
+    def setID(self, id):
+        self.ID = id
+
+    def getParentID(self):
+        return self.parentID
+
+    def setParentID(self, parentID):
+        self.parentID = parentID
 
     def getState(self):
         return self.state
@@ -364,23 +378,8 @@ class monteCarloTreeSearch:
             #backProp
             self.backPropogation(nodeToExplore, playResult, rootPlayer, promisingNode)
 
-        #print("after mcts",rootNode.getStateList())
-        from test import prettyBoard
-        #print("state lists")
-        #for i in range(len(rootNode.getStateList())):
-        #    print(i, rootNode.getStateList()[i].score)
-        #    print("move", rootNode.getStateList()[i].getMove())
-        #    prettyBoard(rootNode.getStateList()[i].board.board)
 
-        #prettyBoard(rootNode.getState().getBoard().board)
-
-        #childList is a hashtable and takes a child from one of the deeper nodes
-        if (rootPlayer == -1):
-            #winnerIndex = rootNode.getChildWithMaxScoreIndex()
-            winnerNode = rootNode.getChildWithMaxScore()
-        else:
-            #winnerIndex = rootNode.getChildWithMinScoreIndex()
-            winnerNode = rootNode.getChildWithMinScore()
+        winnerNode = rootNode.getChildWithMaxScore()
         #print("winner board")
         #winningMove = rootNode.getState().getBoard().currentPlayer.legalMoves[winnerIndex]
         #prettyBoard(rootNode.getChildList()[winnerIndex].getState().getBoard().board)
@@ -390,17 +389,24 @@ class monteCarloTreeSearch:
 
     def selectPromisingNode(self, rootNode):
         node = rootNode
-#        print("inside select node", node)
-        while (len(node.getChildList())!=0):
+#        from test import prettyBoard
+#        print("inside select node")
+#        print("node", node, node.getID(), node.getParentID())
+#        prettyBoard(node.getState().getBoard().board)
+        if (len(node.childList)!=0):
             #print("inside select promising node",node)
+            # node returns none because uct thinks there isn't a max value, fix scoreing to fix this
             node = findBestNodeWithUCT(node)
+            #print("inside select promising node",node)
         return node
 
     def expandNode(self, node):
         allStates = node.getState().getAllStates()
-        for state in allStates:
-            newNode = Node(state)
+        for i in range(len(allStates)):
+            newNode = Node(allStates[i])
             newNode.setParent(node)
+            newNode.setID(i)
+            newNode.setParentID(node.getID())
             node.getChildList().append(newNode)
 #        self.setDepth(self.depth-1)
 
@@ -411,14 +417,10 @@ class monteCarloTreeSearch:
         depthVal = self.getDepth()
         #print("depth variable",depthVal)
 
-        if (boardStatus == -1*tempState.getPlayer()):
-            from test import prettyBoard
-            print("tempnode stuff", boardStatus)
-            prettyBoard(tempNode.getState().getBoard().board)
-            print(tempNode)
-            print(tempNode.getParent())
-            print(tempNode.getParent().getState())
-            tempNode.getParent().getState().setWinScore(-1*sys.maxsize-1)
+        #print("status", boardStatus)
+        if (boardStatus == -1*tempState.getPlayer() or boardStatus==stalemate):
+            print("status should be different", boardStatus, tempState.getPlayer())
+            tempNode.getParent().getState().setScore(-1*sys.maxsize-1)
             return boardStatus
 
         count = 0
@@ -435,6 +437,7 @@ class monteCarloTreeSearch:
 
     def backPropogation(self, nodeToExplore, playerNo, rootPlayer, promisingNode):
         tempNode = nodeToExplore
+        #print("current player", tempNode.getState().getBoard().currentPlayer.getAllianceName())
         score = standardBoardEvaluator(tempNode.getState().getBoard()).evaluate(tempNode.getState().getBoard())
         while (tempNode!=None):
             #print("inside backProp", score, tempNode.getState().getPlayer(), playerNo, rootPlayer)
@@ -458,12 +461,12 @@ def findBestNodeWithUCT(node):
     parentVisit = node.getState().getVisitCount()
     #change this to something else, wont work
     boardStates = node.getChildList() #node.getState().getAllStates()
-    bestValue = 0
+    bestValue = -1*sys.maxsize-1
     bestState = None
     for i in range(len(boardStates)):
         uctVal = uctValue(parentVisit, boardStates[i].getState().getScore(),
                           boardStates[i].getState().getVisitCount())
-        if (uctVal>bestValue):
+        if (uctVal>=bestValue):
             bestValue = uctVal
             bestState = boardStates[i]
     return bestState
