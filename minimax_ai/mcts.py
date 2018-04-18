@@ -393,7 +393,7 @@ class monteCarloTreeSearch:
 #        print("inside select node")
 #        print("node", node, node.getID(), node.getParentID())
 #        prettyBoard(node.getState().getBoard().board)
-        if (len(node.childList)!=0):
+        while (len(node.childList)!=0):
             #print("inside select promising node",node)
             # node returns none because uct thinks there isn't a max value, fix scoreing to fix this
             node = findBestNodeWithUCT(node)

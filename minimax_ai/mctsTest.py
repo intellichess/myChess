@@ -8,7 +8,7 @@ from mcts import monteCarloTreeSearch
 
 x = Board(Builder()).createStandardBoard()
 prettyBoard(x.board)
-mcts = monteCarloTreeSearch(15, 3)
+mcts = monteCarloTreeSearch(22, 3)
 
 for i in range(20):
     print("current player", x.currentPlayer.getAlliance(), x.currentPlayer.getAllianceName())
