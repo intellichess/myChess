@@ -295,7 +295,6 @@ class minimax:
                     currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
                                               highestVal, lowestVal)
                     if (currentVal>highestVal):
-#                                print("compare highest")
                         highestVal = currentVal
                         bestMove = move
                         if (moveTranstiotion.getExecuteBoard().getBlackPlayer().isCheckmate()):
@@ -304,7 +303,6 @@ class minimax:
                     currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
                                               highestVal, lowestVal)
                     if (currentVal<lowestVal):
-#                                print("compare lowest")
                         lowestVal = currentVal
                         bestMove = move
                         if (moveTranstiotion.getExecuteBoard().getWhitePlayer().isCheckmate()):
@@ -335,17 +333,17 @@ class minimax:
                 depth,
                 highest,
                 lowest):
-        if (depth==0 or self.endGame(board)):
+        if depth == 0 or self.endGame(board):
             return self.boardEvaluator.evaluate(board, depth)
         else:
             currentHighest = highest
             for i in range(len(board.currentPlayer.legalMoves)):
                 move = board.currentPlayer.legalMoves[i]
                 moveTransition = board.currentPlayer.makeMove(move)
-                if(moveTransition.getMoveStatus().value):
-                    currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), \
+                if moveTransition.getMoveStatus().value:
+                    currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), 
                                               depth-1, currentHighest, lowest))
-                    if (currentHighest >= lowest):
+                    if currentHighest >= lowest:
                         return lowest
 
             return currentHighest
