@@ -18,6 +18,7 @@ allBishopBonus = 50
 isolatedPawnPenalty = 15
 doubledPawnPenalty = 35
 
+
 class standardBoardEvaluator:
     def __init__(self, board):
         self.board = board

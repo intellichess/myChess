@@ -13,14 +13,15 @@ import color
 #row1 = white
 from boardutils import col1, col2, col7, col8, row2, row7, row1, row8
 
-#beware of duplicates
 
+# beware of duplicates
 def isTileOccupied(self):
     import test
     if (test.occupiedTile.occupied()):
         return True
     else:
         return False
+
 
 class PieceType(Enum):
     knight = "N"

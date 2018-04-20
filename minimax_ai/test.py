@@ -1,4 +1,4 @@
-#algebraic notation filler vid 37 18:00 and 40 17:00
+# algebraic notation filler vid 37 18:00 and 40 17:00
 from piece import Piece, pawn, bishop, rook, knight, queen, king
 from color import Alliance
 whiteWins = -1
@@ -36,34 +36,34 @@ def moveToString(move, player):
     from boardutils import algebraBoard
     string = ""
     legalMoves = player.legalMoves
-    if(move.isCastlingMove()):
-        if(move.movedPiece.Alliance.value == 1):
-            #kingCastle
-            if((move.destinationCoordinate==6 and move.castleMoveDestination == 5) or \
+    if move.isCastlingMove():
+        if move.movedPiece.Alliance.value == 1:
+            # kingCastle
+            if((move.destinationCoordinate==6 and move.castleMoveDestination == 5) or
             (move.destinationCoordinate == 62 and move.castleMoveDestination == 61)):
                 string = "0-0 "
                 return string
         else:
-            #queenCastle
-            if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or \
+            # queenCastle
+            if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or
                     (move.destinationCoordinate == 58 and move.castleMoveDestination == 59)):
                 string = "0-0-0 "
                 return string
 
-    elif(move.isAttack()):
+    elif move.isAttack():
         string = move.movedPiece.pieceType
         for i in range(len(legalMoves)):
-            if (legalMoves[i] == 0):
+            if legalMoves[i] == 0:
                 pass
             else:
                 for j in range(len(legalMoves[i])):
-                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
-                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
-                        print("is same move", legalMoves[i][j]==move)
+                    if (legalMoves[i][j].destinationCoordinate == move.destinationCoordinate and
+                            legalMoves[i][j].movedPiece.pieceType == move.movedPiece.pieceType):
+                        print("is same move", legalMoves[i][j] == move)
                         string = string + algebraBoard[i][0]
 
         string = string + "x" + algebraBoard[move.destinationCoordinate]
-        if (player.getOpponent().isInCheck):
+        if player.getOpponent().isInCheck:
             string = string + "+" + " "
         else:
             string = string + " "
@@ -72,17 +72,17 @@ def moveToString(move, player):
     else:
         string = move.movedPiece.pieceType
         for i in range(len(legalMoves)):
-            if (legalMoves[i] == 0):
+            if legalMoves[i] == 0:
                 pass
             else:
                 for j in range(len(legalMoves[i])):
-                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
-                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
+                    if (legalMoves[i][j].destinationCoordinate == move.destinationCoordinate and
+                            legalMoves[i][j].movedPiece.pieceType == move.movedPiece.pieceType):
                         print("is same move", legalMoves[i][j] == move)
                         string = string + algebraBoard[i][0]
 
         string = string + algebraBoard[move.destinationCoordinate]
-        if (player.getOpponent().isInCheck):
+        if player.getOpponent().isInCheck:
             string = string + "+" + " "
         else:
             string = string + " "
@@ -118,12 +118,11 @@ def createGameBoard(builder):
 
 class Board:
     def __init__(self, builder):
-#        print("in board class",builder.nextMoveMaker)
         self.board = createGameBoard(builder)
         self.whitePieces = calculateLivePieces(self.board, -1)
         self.blackPieces = calculateLivePieces(self.board, 1)
         self.enPassantPawn = builder.pawn
-        #clean up legal moves in piece.py
+        # clean up legal moves in piece.py
         self.whiteStandardLegalMoves = self.calculateLegalMoves(self.whitePieces)
         self.blackStandardLegalMoves = self.calculateLegalMoves(self.blackPieces)
         import player

@@ -7,11 +7,13 @@ allBishopBonus = 50
 isolatedPawnPenalty = 15
 doubledPawnPenalty = 35
 
+
 def depthBonus(depth):
-    if (depth==0):
+    if depth == 0:
         return 1
     else:
         return 100*depth
+
 
 class standardBoardEvaluator:
     def __init__(self, board, depth):
@@ -26,34 +28,32 @@ class standardBoardEvaluator:
         a = self.pieceValue(player)
         b = self.mobilityRatio(player)*mobilityMultiplier
         c = self.kingThreats(player, depth)
-        e = self.isolatedPenalty(player) * isolatedPawnPenalty #self.pawnBlock(player, board.board) * self.pawnDouble(player) * isolatedPawnPenalty #
-        f = self.doubledPenalty(player) * doubledPawnPenalty #self.pawnIsolated(player, board.board) * doubledPawnPenalty
-        g = 0 #self.calcKingTropism(player).tropismScore()
+        e = self.isolatedPenalty(player) * isolatedPawnPenalty
+        f = self.doubledPenalty(player) * doubledPawnPenalty
+        g = 0  # self.calcKingTropism(player).tropismScore()
         h = self.attack(player) * attackMultiplier
         i = self.castled(player)
         reduce = e+f
-#        print(player.getAllianceName(), d)
-        return a + b + c + h + i - reduce
-               #+ self.castled(player)
+        # print(player.getAllianceName(), d)
+        return a + b + c + h + i - reduce  # + self.castled(player)
 
     def pieceValue(self, player):
-        pieceValueScore = 0
+        piece_value_score = 0
         numBishops = 0
         pieceList = player.getActivePieces()
 #        print("player", player.getAllianceName())
         for i in range(len(pieceList)):
-            pieceValueScore += pieceList[i].pieceValue + pieceList[i].locationBonus()
+            piece_value_score += pieceList[i].pieceValue + pieceList[i].locationBonus()
             if(pieceList[i].pieceType=="b"):
                 numBishops+=1
         if (numBishops == 2):
-            pieceValueScore += allBishopBonus
-        return pieceValueScore
+            piece_value_score += allBishopBonus
+        return piece_value_score
 
     def attack(self,player):
         attackScore = 0
         for i in range(len(player.legalMoves)):
-            if(player.legalMoves[i].isAttack()):
-#                        print("in attack",player.legalMoves[i][j])
+            if player.legalMoves[i].isAttack():
                 movedPiece = player.legalMoves[i].movedPiece
                 attackedPiece = player.legalMoves[i].getAttackedPiece()
                 if (movedPiece.pieceValue<=attackedPiece.pieceValue):
