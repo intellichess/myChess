@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 checkmateBonus = 10000
 checkBonus = 50
 mobilityMultiplier = 2
@@ -39,81 +40,71 @@ class standardBoardEvaluator:
 
     def pieceValue(self, player):
         piece_value_score = 0
-        numBishops = 0
-        pieceList = player.getActivePieces()
-#        print("player", player.getAllianceName())
-        for i in range(len(pieceList)):
-            piece_value_score += pieceList[i].pieceValue + pieceList[i].locationBonus()
-            if(pieceList[i].pieceType=="b"):
-                numBishops+=1
-        if (numBishops == 2):
+        num_bishops = 0
+        piece_list = player.getActivePieces()
+        for i in range(len(piece_list)):
+            piece_value_score += piece_list[i].pieceValue + piece_list[i].locationBonus()
+            if piece_list[i].pieceType == "b":
+                num_bishops += 1
+        if num_bishops == 2:
             piece_value_score += allBishopBonus
         return piece_value_score
 
     def attack(self,player):
-        attackScore = 0
+        attack_score = 0
         for i in range(len(player.legalMoves)):
             if player.legalMoves[i].isAttack():
-                movedPiece = player.legalMoves[i].movedPiece
-                attackedPiece = player.legalMoves[i].getAttackedPiece()
-                if (movedPiece.pieceValue<=attackedPiece.pieceValue):
-                    attackScore+=1
+                moved_piece = player.legalMoves[i].movedPiece
+                attacked_piece = player.legalMoves[i].getAttackedPiece()
+                if moved_piece.pieceValue <= attacked_piece.pieceValue:
+                    attack_score += 1
 
-        return attackScore
+        return attack_score
 
     def mobilityRatio(self, player):
-        curPlayer = self.mobility(player)
-        oppPlayer = self.mobility(player.getOpponent())
-        return curPlayer/oppPlayer
+        cur_player = self.mobility(player)
+        opp_player = self.mobility(player.getOpponent())
+        return cur_player/opp_player
 
     def mobility(self, player):
-        mobilityScore = 0
-#        print("mobility", player.getAllianceName())
+        mobility_score = 0
         for i in range(len(player.legalMoves)):
-            mobilityScore += 1
-#        print("mobilityScore",mobilityScore)
-        return mobilityScore
+            mobility_score += 1
+        return mobility_score
 
     def check(self, player):
-#        print("opponent in check",player.getOpponent().getAllianceName(),player.getOpponent().isInCheck)
-        if (player.getOpponent().isInCheck):
-#            print("check",50)
+        if player.getOpponent().isInCheck:
             return checkBonus
         else:
-#            print("check",0)
             return 0
 
     def checkmate(self, player, depth):
-#        print("opponent in mate",player.getOpponent().getAllianceName(),player.getOpponent().isCheckmate())
-        if (player.getOpponent().isCheckmate()):
-#            print("checkmate",10000*depthBonus(depth))
+        if player.getOpponent().isCheckmate():
             return checkmateBonus * depthBonus(depth)
         else:
-#            print("checkmate",0)
             return 0
 
     def kingThreats(self, player, depth):
-        if (player.getOpponent().isCheckmate()):
-            return  checkmateBonus * depthBonus(depth)
+        if player.getOpponent().isCheckmate():
+            return checkmateBonus * depthBonus(depth)
         else:
             return self.check(player)
 
     def pawnBlock(self, player, board):
         block = 0
         for i in range(len(player.getActivePieces())):
-            if (player.getActivePieces()[i].pieceType=="p"):
+            if player.getActivePieces()[i].pieceType == "p":
                 piece = player.getActivePieces()[i]
                 pos = player.getActivePieces()[i].piecePosition
-                canidate = pos + piece.Alliance.value*8
-#                print("block pawn", piece, pos, canidate, board[canidate].occupied())
-                if(board[canidate].occupied()):
-                    block+=1
+                candidate = pos + piece.Alliance.value*8
+                if board[candidate].occupied():
+                    block += 1
         return block
 
     def pawnIsolated(self, player, board):
         isolated = 0
         for i in range(len(player.getActivePieces())):
-            if (player.getActivePieces()[i].pieceType == "p"):
+            if player.getActivePieces()[i].pieceType == "p":
                 piece = player.getActivePieces()[i]
                 pos = player.getActivePieces()[i].piecePosition
                 from boardutils import col1, col8

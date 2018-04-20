@@ -1,26 +1,17 @@
 from enum import Enum
-#from test import occupiedTile
-#from test import emptyTile
 from color import Alliance
 from move import majorMove
 from move import attackMove
 import move
 import color
 
-
-#boardutils
-#row8 = black
-#row1 = white
 from boardutils import col1, col2, col7, col8, row2, row7, row1, row8
 
 
 # beware of duplicates
 def isTileOccupied(self):
     import test
-    if (test.occupiedTile.occupied()):
-        return True
-    else:
-        return False
+    return test.occupiedTile.occupied()
 
 
 class PieceType(Enum):
@@ -31,9 +22,10 @@ class PieceType(Enum):
     rook = "R"
     bishop = "B"
 
+
 class Piece:
 
-    #add firstMove to other subclasses
+    # add firstMove to other subclasses
     def __init__(self, piecePosition, Alliance):
         self.piecePosition = piecePosition
         self.Alliance = Alliance
@@ -41,7 +33,7 @@ class Piece:
         self.pieceType = ""
         self.possibleMoves = []
         self.pieceValue = 0
-        #more stuff here
+        # more stuff here
 
     def __str__(self):
         return str(self.__dict__)
@@ -69,28 +61,25 @@ class Piece:
 
     def findLegalMoves(self, board):
         pass
-##isValidTileCoordinate
+
+    # isValidTileCoordinate
     def isValidCoordinate(self):
-        return (0 <= self.piecePosition < 64)
+        return 0 <= self.piecePosition < 64
 
     def getPieceType(self):
         return self.pieceType
 
     def isKing(self):
-        if (self.pieceType.value == "K"):
-            return True
-        else:
-            return False
+        return self.pieceType.value == "K"
 
     def movePiece(self, move):
         pass
 
 
-########################################################
-
 class bishop(Piece):
-    possibleMoves=[-9,-7,7,9]
-    def __init__(self,piecePosition, Alliance):
+    possibleMoves = [-9, -7, 7, 9]
+
+    def __init__(self, piecePosition, Alliance):
         super().__init__(piecePosition, Alliance)
         self.pieceType = PieceType.bishop.value
         self.possibleMoves = [-9,-7,7,9]
@@ -104,41 +93,39 @@ class bishop(Piece):
         return self.__dict__ == other.__dict__
 
     def isFirstColumnExclusion(self, currentPosition, canidateOffset):
-        return col1[currentPosition] and ((canidateOffset==-9)or(canidateOffset==7))
-
+        return col1[currentPosition] and ((canidateOffset == -9)or(canidateOffset == 7))
 
     def isEighthColumnExclusion(self, currentPosition, canidateOffset):
-        return col8[currentPosition] and ((canidateOffset==-7)or(canidateOffset==9))
-
+        return col8[currentPosition] and ((canidateOffset == -7)or(canidateOffset == 9))
 
     def findLegalMoves(self, board):
-        legalMoves = []
+        legal_moves = []
         for i in range(4):
-            canidateDestinationCoordinate = self.piecePosition
-            while (0<=canidateDestinationCoordinate<64):
+            candidate_destination_coordinate = self.piecePosition
+            while 0 <= candidate_destination_coordinate < 64:
 
-                if(self.isFirstColumnExclusion(canidateDestinationCoordinate, self.possibleMoves[i])or \
-                        self.isEighthColumnExclusion(canidateDestinationCoordinate, self.possibleMoves[i])):
+                if(self.isFirstColumnExclusion(candidate_destination_coordinate, self.possibleMoves[i]) or
+                        self.isEighthColumnExclusion(candidate_destination_coordinate, self.possibleMoves[i])):
                     break
 
-                canidateDestinationCoordinate += self.possibleMoves[i]
-                if (bishop(canidateDestinationCoordinate,self.Alliance).isValidCoordinate()):
+                candidate_destination_coordinate += self.possibleMoves[i]
+                if bishop(candidate_destination_coordinate,self.Alliance).isValidCoordinate():
 
-                    destinationTile = board.board[canidateDestinationCoordinate]
+                    destination_tile = board.board[candidate_destination_coordinate]
 
-                    if (destinationTile.isTileOccupied() is False):  # if no piece there
+                    if destination_tile.isTileOccupied() is False:  # if no piece there
                         # move
-                        legalMoves.append(majorMove(self, board, canidateDestinationCoordinate))
+                        legal_moves.append(majorMove(self, board, candidate_destination_coordinate))
                     else:
-                        pieceOnTile = destinationTile.getPiece()
-                        pieceAlliance = destinationTile.getPiece().getPieceAlliance()
+                        piece_on_tile = destination_tile.getPiece()
+                        piece_alliance = destination_tile.getPiece().getPieceAlliance()
 
-                        if (self.Alliance != pieceAlliance):
+                        if self.Alliance != piece_alliance:
                             # capture
-                            legalMoves.append(attackMove(self, board, canidateDestinationCoordinate, pieceOnTile))
+                            legal_moves.append(attackMove(self, board, candidate_destination_coordinate, piece_on_tile))
                         break
 
-        return legalMoves
+        return legal_moves
 
     def movePiece(self, move):
         piece = bishop(move.getDestinationCoordinate(), move.getMovedPiece().getPieceAlliance())
@@ -148,10 +135,11 @@ class bishop(Piece):
     def locationBonus(self):
         from boardutils import bishopBonus
         return bishopBonus(self.piecePosition, self.Alliance.value)
-##########################################
+
 
 class knight(Piece):
-    possibleMoves = [-17,-15,-10,-6,6,10,15,17]
+    possibleMoves = [-17, -15, -10, -6, 6, 10, 15, 17]
+
     def __init__(self, piecePosition, Alliance):
         super().__init__(piecePosition, Alliance)
         self.pieceType = PieceType.knight.value
@@ -166,46 +154,43 @@ class knight(Piece):
         return self.__dict__ == other.__dict__
 
     def isFirstColumnExclusion(self, currentPosition, canidateOffset):
-        return col1[currentPosition] and ((canidateOffset==-17)or(canidateOffset==-10)or \
-                                          (canidateOffset==6)or(canidateOffset==15))
+        return col1[currentPosition] and ((canidateOffset == -17)or(canidateOffset == -10)or
+                                          (canidateOffset == 6)or(canidateOffset == 15))
 
     def isSecondColumnExclusion(self, currentPosition, canidateOffset):
-        return col2[currentPosition] and ((canidateOffset==-10)or(canidateOffset==6))
+        return col2[currentPosition] and ((canidateOffset == -10)or(canidateOffset == 6))
 
     def isSeventhColumnExclusion(self, currentPosition, canidateOffset):
-        return col7[currentPosition] and ((canidateOffset==-6)or(canidateOffset==10))
+        return col7[currentPosition] and ((canidateOffset == -6)or(canidateOffset == 10))
 
     def isEighthColumnExclusion(self, currentPosition, canidateOffset):
-        return col8[currentPosition] and ((canidateOffset==-15)or(canidateOffset==-6)or \
-                                          (canidateOffset==10)or(canidateOffset==17))
+        return col8[currentPosition] and ((canidateOffset == -15)or(canidateOffset == -6)or
+                                          (canidateOffset == 10)or(canidateOffset == 17))
 
     def findLegalMoves(self, board):
         legalMoves = []
         for i in range(8):
             destination = self.piecePosition + self.possibleMoves[i]
-            if knight(destination,self.Alliance).isValidCoordinate(): #if valid move
-                #use python dictionary
+            if knight(destination,self.Alliance).isValidCoordinate():  # if valid move
+                # use python dictionary
                 destinationTile = board.board[destination]
 
-                #print(self.piecePosition, destination)
-
-                #possibleMoves[i]
                 if (self.isFirstColumnExclusion(self.piecePosition, self.possibleMoves[i])or \
                         self.isSecondColumnExclusion(self.piecePosition, self.possibleMoves[i])or \
                         self.isSeventhColumnExclusion(self.piecePosition,self.possibleMoves[i]) or \
                         self.isEighthColumnExclusion(self.piecePosition, self.possibleMoves[i])):
                     continue
 
-                if (destinationTile.isTileOccupied() is False): #if no piece there
-                    #move
-                    legalMoves.append(majorMove(self,board,destination))
+                if destinationTile.isTileOccupied() is False:  # if no piece there
+                    # move
+                    legalMoves.append(majorMove(self, board, destination))
                 else:
                     pieceOnTile = destinationTile.getPiece()
                     pieceAlliance = destinationTile.getPiece().getPieceAlliance()
 
-                    if (self.Alliance != pieceAlliance):
-                        #capture
-                        legalMoves.append(attackMove(self,board,destination,pieceOnTile))
+                    if self.Alliance != pieceAlliance:
+                        # capture
+                        legalMoves.append(attackMove(self, board, destination, pieceOnTile))
 
         return legalMoves
 
@@ -217,7 +202,7 @@ class knight(Piece):
     def locationBonus(self):
         from boardutils import knightBonus
         return knightBonus(self.piecePosition, self.Alliance.value)
-##################################################
+
 
 class rook(Piece):
 
