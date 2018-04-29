@@ -1,4 +1,4 @@
-from test import Board, Builder, prettyBoard, OneDToTwoDRow, TwoDToOneDRow
+from test import Board, Builder, prettyBoard, moveToString
 from convertion import moveToByte
 from ai import minimax
 from mcts import monteCarloTreeSearch
@@ -24,17 +24,18 @@ x = Board(Builder()).createStandardBoard()
 prettyBoard(x.board)
 for a in range(20):
 #while (y.currentPlayer.isCheckmate()==False):
-#    a=a+1
+    a=a+1
     depth = 3
     evaluate = minimax(x,depth)
     bestMove=evaluate.execute()
     #byte conversion here
-    moveByte = moveToByte(bestMove)
-    print("string in bytes",moveByte)
-#   moveToString(bestMove, y.currentPlayer))
-    print("best move",bestMove)
     print("loop number",a)
     x = bestMove.execute()
+    move = x.transitionMove
+    # print("alliance",move.board.currentPlayer.getAlliance())
+    moveAlgebra = moveToString(move, move.board.currentPlayer)
+    print("algebraic move", moveAlgebra)
+
     prettyBoard(x.board)
     #x = moveExecute(bestMove, x)
     #twoDBoard = OneDToTwoDRow(x.board)

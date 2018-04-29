@@ -63,59 +63,77 @@ def TwoDToOneDRow(twoDBoard):
     return boardOneD
 
 def moveToString(move, player):
-    from boardutils import algebraBoard
+    from boardutils import algebraBoard, algebraColBoard
     string = ""
+    #print("move start and end", move.getMovedPiece().getPiecePosition(), move.destinationCoordinate,
+    #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[move.destinationCoordinate])
     legalMoves = player.legalMoves
     if(move.isCastlingMove()):
         if(move.movedPiece.Alliance.value == 1):
             #kingCastle
             if((move.destinationCoordinate==6 and move.castleMoveDestination == 5) or \
             (move.destinationCoordinate == 62 and move.castleMoveDestination == 61)):
-                string = "0-0 "
+                string = "0-0"
                 return string
         else:
             #queenCastle
             if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or \
                     (move.destinationCoordinate == 58 and move.castleMoveDestination == 59)):
-                string = "0-0-0 "
+                string = "0-0-0"
                 return string
 
     elif(move.isAttack()):
-        string = move.movedPiece.pieceType
-        for i in range(len(legalMoves)):
-            if (legalMoves[i] == 0):
-                pass
-            else:
-                for j in range(len(legalMoves[i])):
-                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
-                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
-                        print("is same move", legalMoves[i][j]==move)
-                        string = string + algebraBoard[i][0]
-
-        string = string + "x" + algebraBoard[move.destinationCoordinate]
-        if (player.getOpponent().isInCheck):
-            string = string + "+" + " "
+        if (move.movedPiece.pieceType == "p"):
+            string = ""
         else:
-            string = string + " "
+            string = move.movedPiece.pieceType
+        for i in range(len(legalMoves)):
+            if (legalMoves[i].destinationCoordinate==move.destinationCoordinate and \
+                            legalMoves[i].movedPiece.pieceType==move.movedPiece.pieceType and
+                            legalMoves[i].movedPiece.piecePosition!=move.movedPiece.piecePosition):
+         #       print("is same move", legalMoves[i]==move, algebraBoard[move.getMovedPiece().getPiecePosition()],
+         #             '\n', move, '\n', legalMoves[i])
+                if (move.movedPiece.pieceType=="p"):
+                    string = string
+                else:
+                    string = string + algebraColBoard[move.getMovedPiece().getPiecePosition()]
+
+
+        #print("numbers", algebraBoard[move.destinationCoordinate],
+        #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[i])
+        if (move.movedPiece.pieceType=="p"):
+            string = string + algebraColBoard[move.movedPiece.piecePosition] + "x" + algebraBoard[move.destinationCoordinate]
+        else:
+            string = string + "x" + algebraBoard[move.destinationCoordinate]
+        tempBoard = move.execute()
+        if (tempBoard.currentPlayer.isInCheck):
+            #run checkmate check in here as second if statement
+            string = string + "+"
+        else:
+            string = string
         return string
 
     else:
-        string = move.movedPiece.pieceType
-        for i in range(len(legalMoves)):
-            if (legalMoves[i] == 0):
-                pass
-            else:
-                for j in range(len(legalMoves[i])):
-                    if (legalMoves[i][j].destinationCoordinate==move.destinationCoordinate and \
-                            legalMoves[i][j].movedPiece.pieceType==move.movedPiece.pieceType):
-                        print("is same move", legalMoves[i][j] == move)
-                        string = string + algebraBoard[i][0]
-
-        string = string + algebraBoard[move.destinationCoordinate]
-        if (player.getOpponent().isInCheck):
-            string = string + "+" + " "
+        if (move.movedPiece.pieceType=="p"):
+            string = ""
         else:
-            string = string + " "
+            string = move.movedPiece.pieceType
+        for i in range(len(legalMoves)):
+            if (legalMoves[i].destinationCoordinate==move.destinationCoordinate and \
+                    legalMoves[i].movedPiece.pieceType==move.movedPiece.pieceType and
+                    legalMoves[i].movedPiece.piecePosition != move.movedPiece.piecePosition):
+         #       print("is same move", legalMoves[i]==move, algebraBoard[move.getMovedPiece().getPiecePosition()],
+         #             '\n', move, '\n', legalMoves[i])
+                string = string + algebraColBoard[move.getMovedPiece().getPiecePosition()]
+        #print("numbers", algebraBoard[move.destinationCoordinate],
+        #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[i])
+        string = string + algebraBoard[move.destinationCoordinate]
+        tempBoard = move.execute()
+        if (tempBoard.currentPlayer.isInCheck):
+            #run checkmate check in here as second if statement
+            string = string + "+"
+        else:
+            string = string
         return string
 
 
