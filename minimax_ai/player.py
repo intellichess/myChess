@@ -1,12 +1,18 @@
 from enum import Enum
 
-
 def establishKing(player):
     pieces = player.getActivePieces()
     for i in range(len(pieces)):
-        if pieces[i].getPieceType() == "K":
-            return pieces[i]  # may not need to typecast
+        if (pieces[i].getPieceType()=="K"):
+#            print("king",pieces[i])
+            return (pieces[i])  # may not need to typecast
 
+        # else throw RunTimeException
+#    print("made it here")
+
+
+
+#######################################################
 
 class Player:
 
@@ -15,6 +21,7 @@ class Player:
         self.legalMoves = legalMoves
         self.isInCheck = None
         self.king = establishKing(self)
+
 
     def __str__(self):
         return str(self.__dict__)

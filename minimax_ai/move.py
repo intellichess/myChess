@@ -1,7 +1,6 @@
 #from piece import Piece
 #from test import Tile
 
-
 class Move:
 
     def __init__(self, movedPiece, board, destinationCoordinate):

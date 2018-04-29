@@ -1,4 +1,4 @@
-from test import Board, Builder, prettyBoard, moveToString
+from test import Board, Builder, prettyBoard, OneDToTwoDRow, TwoDToOneDRow
 from convertion import moveToByte
 from ai import minimax
 from mcts import monteCarloTreeSearch
@@ -37,3 +37,7 @@ for a in range(20):
     x = bestMove.execute()
     prettyBoard(x.board)
     #x = moveExecute(bestMove, x)
+    #twoDBoard = OneDToTwoDRow(x.board)
+    #oneDBoard = TwoDToOneDRow(twoDBoard)
+    #print("board converted back and forth")
+    #prettyBoard(oneDBoard)
