@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 checkmateBonus = 10000
 checkBonus = 50
 mobilityMultiplier = 2
@@ -7,11 +8,13 @@ allBishopBonus = 50
 isolatedPawnPenalty = 15
 doubledPawnPenalty = 35
 
+
 def depthBonus(depth):
-    if (depth==0):
+    if depth == 0:
         return 1
     else:
         return 100*depth
+
 
 class standardBoardEvaluator:
     def __init__(self, board, depth):
@@ -26,94 +29,82 @@ class standardBoardEvaluator:
         a = self.pieceValue(player)
         b = self.mobilityRatio(player)*mobilityMultiplier
         c = self.kingThreats(player, depth)
-        e = self.isolatedPenalty(player) * isolatedPawnPenalty #self.pawnBlock(player, board.board) * self.pawnDouble(player) * isolatedPawnPenalty #
-        f = self.doubledPenalty(player) * doubledPawnPenalty #self.pawnIsolated(player, board.board) * doubledPawnPenalty
-        g = 0 #self.calcKingTropism(player).tropismScore()
+        e = self.isolatedPenalty(player) * isolatedPawnPenalty
+        f = self.doubledPenalty(player) * doubledPawnPenalty
+        g = 0  # self.calcKingTropism(player).tropismScore()
         h = self.attack(player) * attackMultiplier
         i = self.castled(player)
         reduce = e+f
-#        print(player.getAllianceName(), d)
-        return a + b + c + h + i - reduce
-               #+ self.castled(player)
+        # print(player.getAllianceName(), d)
+        return a + b + c + h + i - reduce  # + self.castled(player)
 
     def pieceValue(self, player):
-        pieceValueScore = 0
-        numBishops = 0
-        pieceList = player.getActivePieces()
-#        print("player", player.getAllianceName())
-        for i in range(len(pieceList)):
-            pieceValueScore += pieceList[i].pieceValue + pieceList[i].locationBonus()
-            if(pieceList[i].pieceType=="b"):
-                numBishops+=1
-        if (numBishops == 2):
-            pieceValueScore += allBishopBonus
-        return pieceValueScore
+        piece_value_score = 0
+        num_bishops = 0
+        piece_list = player.getActivePieces()
+        for i in range(len(piece_list)):
+            piece_value_score += piece_list[i].pieceValue + piece_list[i].locationBonus()
+            if piece_list[i].pieceType == "b":
+                num_bishops += 1
+        if num_bishops == 2:
+            piece_value_score += allBishopBonus
+        return piece_value_score
 
     def attack(self,player):
-        attackScore = 0
+        attack_score = 0
         for i in range(len(player.legalMoves)):
-            if(player.legalMoves[i].isAttack()):
-#                        print("in attack",player.legalMoves[i][j])
-                movedPiece = player.legalMoves[i].movedPiece
-                attackedPiece = player.legalMoves[i].getAttackedPiece()
-                if (movedPiece.pieceValue<=attackedPiece.pieceValue):
-                    attackScore+=1
+            if player.legalMoves[i].isAttack():
+                moved_piece = player.legalMoves[i].movedPiece
+                attacked_piece = player.legalMoves[i].getAttackedPiece()
+                if moved_piece.pieceValue <= attacked_piece.pieceValue:
+                    attack_score += 1
 
-        return attackScore
+        return attack_score
 
     def mobilityRatio(self, player):
-        curPlayer = self.mobility(player)
-        oppPlayer = self.mobility(player.getOpponent())
-        return curPlayer/oppPlayer
+        cur_player = self.mobility(player)
+        opp_player = self.mobility(player.getOpponent())
+        return cur_player/opp_player
 
     def mobility(self, player):
-        mobilityScore = 0
-#        print("mobility", player.getAllianceName())
+        mobility_score = 0
         for i in range(len(player.legalMoves)):
-            mobilityScore += 1
-#        print("mobilityScore",mobilityScore)
-        return mobilityScore
+            mobility_score += 1
+        return mobility_score
 
     def check(self, player):
-#        print("opponent in check",player.getOpponent().getAllianceName(),player.getOpponent().isInCheck)
-        if (player.getOpponent().isInCheck):
-#            print("check",50)
+        if player.getOpponent().isInCheck:
             return checkBonus
         else:
-#            print("check",0)
             return 0
 
     def checkmate(self, player, depth):
-#        print("opponent in mate",player.getOpponent().getAllianceName(),player.getOpponent().isCheckmate())
-        if (player.getOpponent().isCheckmate()):
-#            print("checkmate",10000*depthBonus(depth))
+        if player.getOpponent().isCheckmate():
             return checkmateBonus * depthBonus(depth)
         else:
-#            print("checkmate",0)
             return 0
 
     def kingThreats(self, player, depth):
-        if (player.getOpponent().isCheckmate()):
-            return  checkmateBonus * depthBonus(depth)
+        if player.getOpponent().isCheckmate():
+            return checkmateBonus * depthBonus(depth)
         else:
             return self.check(player)
 
     def pawnBlock(self, player, board):
         block = 0
         for i in range(len(player.getActivePieces())):
-            if (player.getActivePieces()[i].pieceType=="p"):
+            if player.getActivePieces()[i].pieceType == "p":
                 piece = player.getActivePieces()[i]
                 pos = player.getActivePieces()[i].piecePosition
-                canidate = pos + piece.Alliance.value*8
-#                print("block pawn", piece, pos, canidate, board[canidate].occupied())
-                if(board[canidate].occupied()):
-                    block+=1
+                candidate = pos + piece.Alliance.value*8
+                if board[candidate].occupied():
+                    block += 1
         return block
 
     def pawnIsolated(self, player, board):
         isolated = 0
         for i in range(len(player.getActivePieces())):
-            if (player.getActivePieces()[i].pieceType == "p"):
+            if player.getActivePieces()[i].pieceType == "p":
                 piece = player.getActivePieces()[i]
                 pos = player.getActivePieces()[i].piecePosition
                 from boardutils import col1, col8
@@ -304,7 +295,6 @@ class minimax:
                     currentVal = self.minimum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
                                               highestVal, lowestVal)
                     if (currentVal>highestVal):
-#                                print("compare highest")
                         highestVal = currentVal
                         bestMove = move
                         if (moveTranstiotion.getExecuteBoard().getBlackPlayer().isCheckmate()):
@@ -313,7 +303,6 @@ class minimax:
                     currentVal = self.maximum(moveTranstiotion.getExecuteBoard(), self.boardEvaluator.depth-1,\
                                               highestVal, lowestVal)
                     if (currentVal<lowestVal):
-#                                print("compare lowest")
                         lowestVal = currentVal
                         bestMove = move
                         if (moveTranstiotion.getExecuteBoard().getWhitePlayer().isCheckmate()):
@@ -344,17 +333,17 @@ class minimax:
                 depth,
                 highest,
                 lowest):
-        if (depth==0 or self.endGame(board)):
+        if depth == 0 or self.endGame(board):
             return self.boardEvaluator.evaluate(board, depth)
         else:
             currentHighest = highest
             for i in range(len(board.currentPlayer.legalMoves)):
                 move = board.currentPlayer.legalMoves[i]
                 moveTransition = board.currentPlayer.makeMove(move)
-                if(moveTransition.getMoveStatus().value):
-                    currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(), \
+                if moveTransition.getMoveStatus().value:
+                    currentHighest = max(currentHighest,self.minimum(moveTransition.getExecuteBoard(),
                                               depth-1, currentHighest, lowest))
-                    if (currentHighest >= lowest):
+                    if currentHighest >= lowest:
                         return lowest
 
             return currentHighest

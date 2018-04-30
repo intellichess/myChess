@@ -1,4 +1,4 @@
-#algebraic notation filler vid 37 18:00 and 40 17:00
+# algebraic notation filler vid 37 18:00 and 40 17:00
 from piece import Piece, pawn, bishop, rook, knight, queen, king
 from color import Alliance
 whiteWins = -1
@@ -7,152 +7,98 @@ stalemate = 2
 inProgress = 0
 
 
-#board stuff
+# board stuff
 def prettyBoard(board):
-    str = ""
     for i in range(len(board)):
-        if (i%8==0):
+        if i % 8 == 0:
             print("")
-            if (board[i].occupied()==True):
-                if (board[i].pieceOnTile.Alliance.value>0):
-                    str = board[i].pieceOnTile.pieceType + "b"
+            if board[i].occupied():
+                s = ""
+                if board[i].pieceOnTile.Alliance.value > 0:
+                    s = board[i].pieceOnTile.pieceType + "b"
                 else:
-                    str = board[i].pieceOnTile.pieceType + "w"
-                print(" "+str, end="")
+                    s = board[i].pieceOnTile.pieceType + "w"
+                print(" " + s, end="")
             else:
-                print(" --",end="")
+                print(" --", end="")
         else:
-            if (board[i].occupied()==True):
-                if (board[i].pieceOnTile.Alliance.value>0):
-                    str = board[i].pieceOnTile.pieceType + "b"
+            if board[i].occupied():
+                if board[i].pieceOnTile.Alliance.value > 0:
+                    s = board[i].pieceOnTile.pieceType + "b"
                 else:
-                    str = board[i].pieceOnTile.pieceType + "w"
-                print(" "+str, end="")
+                    s = board[i].pieceOnTile.pieceType + "w"
+                print(" " + s, end="")
             else:
-                print(" --",end="")
+                print(" --", end="")
     print("")
 
-def OneDToTwoDRow(board):
-    boardTwoD = [[]]*8
-    boardRow = [None]*8
-    rowNum = 0
-    i =0
-    while (rowNum < 8):
-        if i!=8:
-            boardRow[i] = board[(rowNum*8) + i]
-            i += 1
-        elif i==8:
-            i = 0
-            boardTwoD[rowNum] = boardRow
-            boardRow = [None]*8
-            rowNum+=1
-    return boardTwoD
-
-def TwoDToOneDRow(twoDBoard):
-    boardOneD = [None]*64
-    numRow = 0
-    i = 0
-    while (numRow < 8):
-        if i!=8:
-            boardOneD[(numRow*8) + i] = twoDBoard[numRow][i]
-            i += 1
-        else:
-            i = 0
-            numRow += 1
-
-    return boardOneD
 
 def moveToString(move, player):
-    from boardutils import algebraBoard, algebraColBoard
+    from boardutils import algebraBoard
     string = ""
-    #print("move start and end", move.getMovedPiece().getPiecePosition(), move.destinationCoordinate,
-    #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[move.destinationCoordinate])
-    legalMoves = player.legalMoves
-    if(move.isCastlingMove()):
-        if(move.movedPiece.Alliance.value == 1):
-            #kingCastle
-            if((move.destinationCoordinate==6 and move.castleMoveDestination == 5) or \
-            (move.destinationCoordinate == 62 and move.castleMoveDestination == 61)):
-                string = "0-0"
+    legal_moves = player.legalMoves
+    if move.isCastlingMove():
+        if move.movedPiece.Alliance.value == 1:
+            # kingCastle
+            if((move.destinationCoordinate == 6 and move.castleMoveDestination == 5) or
+                    (move.destinationCoordinate == 62 and move.castleMoveDestination == 61)):
+                string = "0-0 "
                 return string
         else:
-            #queenCastle
-            if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or \
+            # queenCastle
+            if ((move.destinationCoordinate == 2 and move.castleMoveDestination == 3) or
                     (move.destinationCoordinate == 58 and move.castleMoveDestination == 59)):
-                string = "0-0-0"
+                string = "0-0-0 "
                 return string
 
-    elif(move.isAttack()):
-        if (move.movedPiece.pieceType == "p"):
-            string = ""
-        else:
-            string = move.movedPiece.pieceType
-        for i in range(len(legalMoves)):
-            if (legalMoves[i].destinationCoordinate==move.destinationCoordinate and \
-                            legalMoves[i].movedPiece.pieceType==move.movedPiece.pieceType and
-                            legalMoves[i].movedPiece.piecePosition!=move.movedPiece.piecePosition):
-         #       print("is same move", legalMoves[i]==move, algebraBoard[move.getMovedPiece().getPiecePosition()],
-         #             '\n', move, '\n', legalMoves[i])
-                if (move.movedPiece.pieceType=="p"):
-                    string = string
-                else:
-                    string = string + algebraColBoard[move.getMovedPiece().getPiecePosition()]
+    elif move.isAttack():
+        string = move.movedPiece.pieceType
+        for i in range(len(legal_moves)):
+            if legal_moves[i] == 0:
+                pass
+            else:
+                for j in range(len(legal_moves[i])):
+                    if (legal_moves[i][j].destinationCoordinate == move.destinationCoordinate and
+                            legal_moves[i][j].movedPiece.pieceType == move.movedPiece.pieceType):
+                        print("is same move", legal_moves[i][j] == move)
+                        string = string + algebraBoard[i][0]
 
-
-        #print("numbers", algebraBoard[move.destinationCoordinate],
-        #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[i])
-        if (move.movedPiece.pieceType=="p"):
-            string = string + algebraColBoard[move.movedPiece.piecePosition] + "x" + algebraBoard[move.destinationCoordinate]
+        string = string + "x" + algebraBoard[move.destinationCoordinate]
+        if player.getOpponent().isInCheck:
+            string = string + "+" + " "
         else:
-            string = string + "x" + algebraBoard[move.destinationCoordinate]
-        tempBoard = move.execute()
-        if (tempBoard.currentPlayer.isInCheck):
-            #run checkmate check in here as second if statement
-            string = string + "+"
-        else:
-            string = string
+            string = string + " "
         return string
 
     else:
-        if (move.movedPiece.pieceType=="p"):
-            string = ""
-        else:
-            string = move.movedPiece.pieceType
-        for i in range(len(legalMoves)):
-            if (legalMoves[i].destinationCoordinate==move.destinationCoordinate and \
-                    legalMoves[i].movedPiece.pieceType==move.movedPiece.pieceType and
-                    legalMoves[i].movedPiece.piecePosition != move.movedPiece.piecePosition):
-         #       print("is same move", legalMoves[i]==move, algebraBoard[move.getMovedPiece().getPiecePosition()],
-         #             '\n', move, '\n', legalMoves[i])
-                string = string + algebraColBoard[move.getMovedPiece().getPiecePosition()]
-        #print("numbers", algebraBoard[move.destinationCoordinate],
-        #      algebraBoard[move.getMovedPiece().getPiecePosition()], algebraBoard[i])
+        string = move.movedPiece.pieceType
+        for i in range(len(legal_moves)):
+            if legal_moves[i] == 0:
+                pass
+            else:
+                for j in range(len(legal_moves[i])):
+                    if (legal_moves[i][j].destinationCoordinate == move.destinationCoordinate and
+                            legal_moves[i][j].movedPiece.pieceType == move.movedPiece.pieceType):
+                        print("is same move", legal_moves[i][j] == move)
+                        string = string + algebraBoard[i][0]
+
         string = string + algebraBoard[move.destinationCoordinate]
-        tempBoard = move.execute()
-        if (tempBoard.currentPlayer.isInCheck):
-            #run checkmate check in here as second if statement
-            string = string + "+"
+        if player.getOpponent().isInCheck:
+            string = string + "+" + " "
         else:
-            string = string
+            string = string + " "
         return string
 
 
 def calculateLivePieces(board, color):
     import piece
-    livePieces = []
-    #print("board in calcLivePieces", board)
+    live_pieces = []
     for i in range(64):
-        OnTile = board[i]
-#        print("pieceOnTile",board[i])
-        if (board[i].occupied()):
-#            print("tile", OnTile)
-#            print("piece on tile", OnTile.pieceOnTile)
-#            print("1 piece color, 2 color", OnTile.getPiece().getPieceAlliance().value , color)
-            if (OnTile.getPiece().getPieceAlliance().value==color):
-#                print("livePieces before", livePieces)
-                livePieces.append(OnTile.getPiece())
-#                print("livePieces after",livePieces)
-    return livePieces
+        on_tile = board[i]
+        if board[i].occupied():
+            if on_tile.getPiece().getPieceAlliance().value == color:
+                live_pieces.append(on_tile.getPiece())
+    return live_pieces
 
 def createGameBoard(builder):
     tiles = [None]*64
@@ -166,12 +112,11 @@ def createGameBoard(builder):
 
 class Board:
     def __init__(self, builder):
-#        print("in board class",builder.nextMoveMaker)
         self.board = createGameBoard(builder)
         self.whitePieces = calculateLivePieces(self.board, -1)
         self.blackPieces = calculateLivePieces(self.board, 1)
         self.enPassantPawn = builder.pawn
-        #clean up legal moves in piece.py
+        # clean up legal moves in piece.py
         self.whiteStandardLegalMoves = self.calculateLegalMoves(self.whitePieces)
         self.blackStandardLegalMoves = self.calculateLegalMoves(self.blackPieces)
         import player
@@ -252,16 +197,13 @@ class Board:
         import piece
         from piece import bishop, knight, king, rook, pawn, queen
         legalMoves = []
-        #legalMoves2 = []
-#        print(pieces)
+
         # for all pieces in the list
         for i in range(len(pieces)):
-            #legalMoves.append(pieces[i].findLegalMoves(self))
             legalMoves = legalMoves + pieces[i].findLegalMoves(self)
         return legalMoves
 
-##error here, create tile, builder
-
+        ## error here, create tile, builder
 
 
     def createStandardBoard(self):
@@ -284,7 +226,7 @@ class Board:
         building.setPiece(piece.pawn(13, color.Alliance.black))
         building.setPiece(piece.pawn(14, color.Alliance.black))
         building.setPiece(piece.pawn(15, color.Alliance.black))
-        #white
+        # white
         building.setPiece(piece.pawn(48, color.Alliance.white))
         building.setPiece(piece.pawn(49, color.Alliance.white))
         building.setPiece(piece.pawn(50, color.Alliance.white))
@@ -353,6 +295,7 @@ class Builder(Board):
     def setEnPassantPawn(self, pawn):
         self.pawn = pawn
 
+
 ##########################################################
 class Tile:
     def __init__(self, tileCoordinate):
@@ -380,13 +323,10 @@ class Tile:
     def getTileCoordinate(cls):
         return cls.tileCoordinate
 
-
-#piece not piece, is a new tile
+    # piece not piece, is a new tile
     @classmethod
     def createTile(cls, tileCoordinate , piece):
-#        print("1 coordinate, 2 piece", tileCoordinate, piece)
-        if (piece is not None):
-#            print("piece in createTile",piece.getPiece())
+        if piece is not None:
             return occupiedTile(tileCoordinate , piece)
 
         else:
@@ -394,8 +334,7 @@ class Tile:
 
     @classmethod
     def placeTile(cls, tileCoordinate, tile):
-#        print("1 coordinate, 2 piece", tileCoordinate, tile)
-        if (tile is not None):
+        if tile is not None:
             return occupiedTile(tileCoordinate, tile.getPiece())
 
         else:
@@ -406,6 +345,7 @@ class Tile:
         return cls.occupied()
 
 ############################################################
+
 
 class emptyTile(Tile):
     def __init__(self, tileCoordinate):
@@ -423,7 +363,6 @@ class emptyTile(Tile):
 ##################################################
 
 class occupiedTile(Tile):
-    #pieceOnTile = piece
     def __init__(self, tileCoordinate, pieceOnTile):
         super().__init__(tileCoordinate)
         self.pieceOnTile = pieceOnTile
@@ -432,7 +371,5 @@ class occupiedTile(Tile):
     def occupied(cls):
         return True
 
-
     def getPiece(cls):
         return cls.pieceOnTile
-
